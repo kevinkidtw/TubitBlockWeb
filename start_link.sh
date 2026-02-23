@@ -1,18 +1,58 @@
 #!/bin/bash
 
-echo "TubitBlockWeb - 正在啟動硬體連線助手 (Mac/Linux)..."
+echo "======================================================="
+echo "TubitBlockWeb 一鍵啟動環境 (Mac/Linux)"
+echo "======================================================="
 echo "正在檢查系統環境..."
 
 # 檢查 npm 是否安裝
 if ! command -v npm &> /dev/null
 then
+    echo ""
+    echo "找不到 Node.js (npm)，準備進行自動安裝..."
+    if [ "$(uname)" == "Darwin" ]; then
+        if command -v brew &> /dev/null; then
+            echo "偵測到 Homebrew，正在安裝 Node.js..."
+            brew install node
+        else
+            echo "正在下載 Node.js Mac 版安裝檔 (LTS)..."
+            curl -o nodejs.pkg "https://nodejs.org/dist/v20.11.1/node-v20.11.1.pkg"
+            echo "即將安裝 Node.js，請輸入您的 Mac 電腦密碼以授權："
+            sudo installer -pkg nodejs.pkg -target /
+            rm nodejs.pkg
+        fi
+    elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+        echo "正在為 Linux 系統安裝 Node.js..."
+        if command -v apt-get &> /dev/null; then
+            curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+            sudo apt-get install -y nodejs
+        else
+            echo "[錯誤] 目前僅支援使用 apt 的 Linux 系統自動安裝。"
+            echo "請手動前往 https://nodejs.org/ 下載。安裝後重新執行此腳本。"
+            exit 1
+        fi
+    else
+        echo "[錯誤] 未知的作業系統，無法自動安裝 Node.js！"
+        echo "請手動前往 https://nodejs.org/ 下載。安裝後重新執行此腳本。"
+        exit 1
+    fi
+
+    # 再次檢查
+    if ! command -v npm &> /dev/null
+    then
+        echo ""
+        echo "======================================================="
+        echo "自動安裝似乎未成功，請嘗試手動前往 https://nodejs.org/ 安裝，"
+        echo "安裝完畢後，請重新開啟這個終端機視窗並重試。"
+        echo "======================================================="
+        exit 1
+    fi
+    echo ""
     echo "======================================================="
-    echo "[錯誤] 找不到 Node.js (npm)！"
-    echo "硬體連線助手需要 Node.js 才能運行。"
-    echo "請先前往官方網站下載並安裝 LTS 版本：https://nodejs.org/"
-    echo "安裝後請重新開啟終端機，並再次執行此腳本。"
+    echo "Node.js (npm) 安裝成功！"
+    echo "由於環境變數更新，請先關閉這個終端機視窗，然後重新執行腳本一次！"
     echo "======================================================="
-    exit 1
+    exit 0
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -22,21 +62,34 @@ if [ -d "$SCRIPT_DIR/openblock-link" ]; then
 elif [ -d "$SCRIPT_DIR/TubitBlockWeb/openblock-link" ]; then
     cd "$SCRIPT_DIR/TubitBlockWeb/openblock-link"
 else
-    echo "找不到 openblock-link 目錄，準備透過 Git 自動下載專案..."
+    echo ""
+    echo "找不到 openblock-link 目錄，準備自動下載專案..."
     if ! command -v git &> /dev/null
     then
-        echo "[錯誤] 找不到 git 程式，無法自動下載專案！"
-        echo "請先安裝 Git，或直接從 GitHub 首頁下載 ZIP 壓縮包。"
-        exit 1
+        echo "系統找不到 Git，改用 curl 下載壓縮包..."
+        cd "$SCRIPT_DIR"
+        curl -L -o TubitBlockWeb.zip https://github.com/kevinkidtw/TubitBlockWeb/archive/refs/heads/main.zip
+        unzip -q TubitBlockWeb.zip
+        rm TubitBlockWeb.zip
+        mv TubitBlockWeb-main TubitBlockWeb
+        cd "TubitBlockWeb/openblock-link"
+    else
+        echo "系統具備 Git，開始從 GitHub 複製專案..."
+        cd "$SCRIPT_DIR"
+        git clone https://github.com/kevinkidtw/TubitBlockWeb.git
+        cd "TubitBlockWeb/openblock-link"
     fi
-    cd "$SCRIPT_DIR"
-    git clone https://github.com/kevinkidtw/TubitBlockWeb.git
-    cd "TubitBlockWeb/openblock-link"
 fi
 
 echo ""
+echo "正在檢查並安裝專案依賴套件 (npm install)..."
+npm install
+
+echo ""
+echo "======================================================="
 echo "TubitBlockWeb - 服務啟動中..."
-echo "請勿關閉此終端機黑框視窗，最小化即可！"
+echo "請勿關閉此終端機黑框視窗，把它最小化即可！"
+echo "======================================================="
 echo ""
 
 # 開始執行背景連線服務
