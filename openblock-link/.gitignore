@@ -5,6 +5,6 @@ node_modules/
 .DS_Store
 
 # Binary tools
-tools/
-firmwares/
+# tools/
+# firmwares/
 tmp/
