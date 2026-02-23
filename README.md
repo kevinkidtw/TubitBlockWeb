@@ -22,6 +22,7 @@ TubitBlock 是一個基於網頁的視覺化積木程式設計平臺，專為學
 ### 第一步：安裝 Node.js (執行環境)
 
 硬體連線助手依賴 Node.js 環境運行。如果你的電腦還沒安裝過，請先完整安裝：
+
 - **Windows 使用者**：
     1. 前往 [Node.js 官方網站](https://nodejs.org/)。
     2. 下載並安裝標有 **"LTS" (長期維護版)** 的 Windows 安裝檔 (`.msi`)。
@@ -33,17 +34,11 @@ TubitBlock 是一個基於網頁的視覺化積木程式設計平臺，專為學
 ### 第二步：下載並執行硬體連線助手
 
 1. 在本頁面右上角點擊綠色按鈕 **`<> Code`**，選擇 **`Download ZIP`** 下載整個專案，並解壓縮到你的電腦上（例如桌面）。
-2. 打開**終端機** (Mac) 或 **命令提示字元 / PowerShell** (Windows)。
-3. 使用 `cd` 指令進入解壓縮後的 `openblock-link` 資料夾。例如：
-   - **Windows**: `cd Desktop\TubitBlockWeb-main\openblock-link`
-   - **Mac**: `cd ~/Desktop/TubitBlockWeb-main/openblock-link`
-4. 輸入啟動指令，讓它在背景執行：
+2. 開啟解壓縮後的資料夾，你會看到專為不同系統準備的一鍵啟動腳本：
+   - **Windows 使用者**：直接連按兩下執行 **`start_link.bat`**。
+   - **Mac 使用者**：打開終端機，將 **`start_link.sh`** 拖曳到終端機內並按下 Enter，或者輸入指令 `./start_link.sh`。（若遇到權限問題，請先執行 `chmod +x start_link.sh`）。
 
-   ```bash
-   npm start
-   ```
-
-   *(如果看到 "Node server started on 20111/20112" 或類似訊息，並且視窗沒有立刻關閉退出，代表成功啟動！請保持這個黑色的文字視窗開啟，不要關掉它。)*
+*(如果彈出黑框視窗，並顯示「正在啟動硬體連線助手」，且視窗沒有立刻關閉，代表成功啟動！**請保持這個黑色的文字視窗開啟，不要關掉它，把它最小化即可。**)*
 
 ### 第三步：開啟網頁寫程式
 
