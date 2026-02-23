@@ -1,0 +1,8 @@
+.DS_Store
+*.log
+.openblockData/
+openblock-link/node_modules/
+openblock-link/.openblockData/
+openblock-link/tools/Arduino/hardware/
+openblock-link/tools/Arduino/tools/
+*.pyc
