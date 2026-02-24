@@ -1,89 +1,105 @@
 @echo off
-chcp 65001 > nul
-TITLE TubitBlockWeb - 硬體連線助手 (Windows)
+setlocal EnableDelayedExpansion
+
+:: === TubitBlockWeb Launcher for Windows ===
+:: This script auto-installs Node.js, downloads the project, and starts openblock-link.
+
+chcp 65001 > nul 2>&1
+TITLE TubitBlockWeb Launcher
 
 echo =======================================================
-echo TubitBlockWeb 一鍵啟動環境 (Mac/Windows 通用架構)
+echo   TubitBlockWeb - Auto Setup and Launcher
 echo =======================================================
-echo 正在檢查系統環境...
-
-:: 檢查 npm 是否安裝
-where npm >nul 2>nul
-if %errorlevel% equ 0 goto check_project
-
 echo.
-echo 找不到 Node.js (npm)，準備自動下載並安裝 Node.js...
-echo.
-where winget >nul 2>nul
-if %errorlevel% neq 0 goto install_nodejs_ps
 
-echo 偵測到微軟套件管理員 (winget)，正在安裝 Node.js LTS...
-winget install -e --id OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements
-goto end_nodejs_install
-
-:install_nodejs_ps
-echo 系統未具備 winget，切換為直接下載安裝檔...
-powershell -Command "$ErrorActionPreference = 'Stop'; Invoke-WebRequest -Uri 'https://nodejs.org/dist/v20.11.1/node-v20.11.1-x64.msi' -OutFile 'nodejs.msi'"
-if not exist nodejs.msi (
-    echo [錯誤] 檔案下載失敗！請手動前往 https://nodejs.org/ 下載。
-    pause
-    exit /b
+:: ------- Step 1: Check npm -------
+where npm > nul 2>&1
+if !errorlevel! equ 0 (
+    echo [OK] Node.js found.
+    goto STEP2
 )
-echo 正在執行安裝程式... [請在跳出的視窗中允許變更並完成安裝]
-msiexec /i nodejs.msi /qb
-del nodejs.msi
 
-:end_nodejs_install
+echo [!!] Node.js not found. Installing now...
+echo.
+
+where winget > nul 2>&1
+if !errorlevel! equ 0 (
+    echo Installing Node.js via winget...
+    winget install -e --id OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements
+    goto REBOOT_MSG
+)
+
+echo Downloading Node.js installer via PowerShell...
+powershell -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri 'https://nodejs.org/dist/v20.11.1/node-v20.11.1-x64.msi' -OutFile '%TEMP%\nodejs.msi'"
+if not exist "%TEMP%\nodejs.msi" (
+    echo [ERROR] Download failed. Please install Node.js manually from https://nodejs.org/
+    goto END
+)
+echo Running Node.js installer...
+msiexec /i "%TEMP%\nodejs.msi" /qb
+del "%TEMP%\nodejs.msi" > nul 2>&1
+
+:REBOOT_MSG
 echo.
 echo =======================================================
-echo Node.js 安裝完畢！
-echo 為了讓系統載入新的環境變數，請先將這個「黑色的視窗關閉」，
-echo 然後「重新連按兩下這個啟動腳本」來繼續執行後續步驟。
+echo   Node.js installation complete!
+echo   Please CLOSE this window, then double-click
+echo   this script again to continue setup.
 echo =======================================================
-pause
-exit /b
+goto END
 
-:check_project
-:: 檢查是否有 openblock-link 資料夾
+:: ------- Step 2: Check project files -------
+:STEP2
+set "LINK_DIR="
 if exist "%~dp0openblock-link\package.json" (
-    cd /d "%~dp0openblock-link"
-    goto start_server
+    set "LINK_DIR=%~dp0openblock-link"
 )
 if exist "%~dp0TubitBlockWeb\openblock-link\package.json" (
-    cd /d "%~dp0TubitBlockWeb\openblock-link"
-    goto start_server
+    set "LINK_DIR=%~dp0TubitBlockWeb\openblock-link"
 )
 
+if defined LINK_DIR (
+    echo [OK] Project found.
+    goto STEP3
+)
+
+echo [!!] Project not found. Downloading from GitHub...
 echo.
-echo 找不到 openblock-link，準備自動下載專案...
-where git >nul 2>nul
-if %errorlevel% neq 0 goto clone_ps
 
-echo 偵測到 Git，正在從 GitHub 複製專案...
+where git > nul 2>&1
+if !errorlevel! equ 0 (
+    echo Cloning via git...
+    cd /d "%~dp0"
+    git clone https://github.com/kevinkidtw/TubitBlockWeb.git
+    set "LINK_DIR=%~dp0TubitBlockWeb\openblock-link"
+    goto RUN_NPM_INSTALL
+)
+
+echo Downloading ZIP via PowerShell...
 cd /d "%~dp0"
-git clone https://github.com/kevinkidtw/TubitBlockWeb.git
-cd /d "%~dp0TubitBlockWeb\openblock-link"
-goto run_install
+powershell -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri 'https://github.com/kevinkidtw/TubitBlockWeb/archive/refs/heads/main.zip' -OutFile 'TubitBlockWeb.zip'; Expand-Archive -Path 'TubitBlockWeb.zip' -DestinationPath '.' -Force; Remove-Item 'TubitBlockWeb.zip'"
+if exist "%~dp0TubitBlockWeb-main" (
+    move "%~dp0TubitBlockWeb-main" "%~dp0TubitBlockWeb" > nul 2>&1
+)
+set "LINK_DIR=%~dp0TubitBlockWeb\openblock-link"
 
-:clone_ps
-echo 系統沒有安裝 Git，改用 PowerShell 直接下載壓縮包...
-cd /d "%~dp0"
-powershell -Command "$ErrorActionPreference = 'Stop'; Invoke-WebRequest -Uri 'https://github.com/kevinkidtw/TubitBlockWeb/archive/refs/heads/main.zip' -OutFile 'TubitBlockWeb.zip'; Expand-Archive -Path 'TubitBlockWeb.zip' -DestinationPath '.'; Remove-Item 'TubitBlockWeb.zip'"
-move TubitBlockWeb-main TubitBlockWeb >nul 2>nul
-cd /d "%~dp0TubitBlockWeb\openblock-link"
-
-:run_install
+:RUN_NPM_INSTALL
 echo.
-echo 正在檢查並安裝專案依賴套件 (這可能需要幾分鐘的時間)...
+echo Installing dependencies... This may take a few minutes.
+cd /d "!LINK_DIR!"
 call npm install
 
-:start_server
+:: ------- Step 3: Start server -------
+:STEP3
+cd /d "!LINK_DIR!"
 echo.
 echo =======================================================
-echo TubitBlockWeb - 正在啟動硬體連線助手...
-echo 請保持此黑框視窗開啟，不要關閉，把它最小化即可！
+echo   TubitBlockWeb - Link Server Starting...
+echo   Do NOT close this window! Minimize it instead.
 echo =======================================================
 echo.
-npm start
+call npm start
 
+:END
+echo.
 pause
