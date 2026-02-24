@@ -21,9 +21,9 @@ TubitBlock 是一個基於網頁的視覺化積木程式設計平臺，專為學
 
 ### ⚡ 推薦方式：使用一鍵啟動腳本自動部署
 
-1. 請直接下載本專案提供的一鍵啟動腳本（不需下載幾百MB的整個專案）：
-   - **Windows 使用者**：下載 [start_link.bat](https://raw.githubusercontent.com/kevinkidtw/TubitBlockWeb/main/start_link.bat)。
-   - **Mac 使用者**：下載 [start_link.sh](https://raw.githubusercontent.com/kevinkidtw/TubitBlockWeb/main/start_link.sh)。
+1. 請直接下載本專案提供的一鍵啟動腳本（不需下載幾百MB的整個專案）。**⚠️ 非常重要：請勿直接在 GitHub 網頁上按右鍵另存，否則會載到無效的網頁原始碼。請務必使用以下正確方式下載**：
+   - **Windows 使用者**：[點擊此 Raw 連結 (start_link.bat)](https://raw.githubusercontent.com/kevinkidtw/TubitBlockWeb/main/start_link.bat) 打開純文字畫面後，按鍵盤 `Ctrl + S` 存檔；或對連結點選右鍵「另存連結為...」。
+   - **Mac 使用者**：[點擊此 Raw 連結 (start_link.sh)](https://raw.githubusercontent.com/kevinkidtw/TubitBlockWeb/main/start_link.sh) 打開純文字畫面後，按鍵盤 `Cmd + S` 存檔；或對連結點選右鍵「下載連結檔案」。
 2. （僅Mac需要）打開終端機，為下載的檔案增加執行權限：輸入 `chmod +x start_link.sh`。
 3. 執行您下載的腳本：
    - **Windows 使用者**：直接連按兩下 `start_link.bat`。
