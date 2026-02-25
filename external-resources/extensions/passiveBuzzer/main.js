@@ -1,6 +1,6 @@
 /**
  * Registers the Scratch extension for passive buzzer functionality.
- * @return {class} The OpenBlockPassiveBuzzerBlocks class.
+ * @return {class} The TUbitBlockPassiveBuzzerBlocks class.
  */
 function registerScratchExtension () { // eslint-disable-line func-style
     // Determine the global object based on the environment (Node.js or browser).
@@ -98,7 +98,7 @@ function registerScratchExtension () { // eslint-disable-line func-style
     /**
      * Scratch 3.0 blocks to interact with a passive buzzer peripheral.
      */
-    class OpenBlockPassiveBuzzerBlocks {
+    class TUbitBlockPassiveBuzzerBlocks {
 
         /**
          * The ID of the extension.
@@ -488,7 +488,7 @@ function registerScratchExtension () { // eslint-disable-line func-style
         }
 
         /**
-         * Constructs an OpenBlockPassiveBuzzerBlocks instance.
+         * Constructs an TUbitBlockPassiveBuzzerBlocks instance.
          * @param {Runtime} _runtime - The Scratch 3.0 runtime.
          * @param {DeviceInstance} _deviceInstance - The device instance currently running on the virtual machine.
          */
@@ -728,7 +728,7 @@ function registerScratchExtension () { // eslint-disable-line func-style
         }
     }
 
-    return OpenBlockPassiveBuzzerBlocks;
+    return TUbitBlockPassiveBuzzerBlocks;
 }
 
 exports = registerScratchExtension;

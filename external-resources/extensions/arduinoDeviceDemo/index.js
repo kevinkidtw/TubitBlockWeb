@@ -3,7 +3,7 @@ const arduinoDeviceDemo = () => ({
     extensionId: 'arduinoDeviceDemo',
     version: '1.0.0',
     supportDevice: ['deviceDemo_arduinoEsp32'],
-    author: 'OpenBlock',
+    author: 'TUbitBlock',
     hide: true,
     blocks: 'blocks.js',
     generator: 'generator.js',

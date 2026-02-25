@@ -322,7 +322,7 @@
     "description": "",
     "featured": true,
     "disabled": false,
-    "collaborator": "OpenBlock",
+    "collaborator": "TUbitBlock",
     "supportDevice": [
       "deviceDemo_arduinoEsp32"
     ],

@@ -1,5 +1,8 @@
-# TubitBlockWeb - 一鍵自動部署與啟動腳本 (Windows PowerShell)
-# 本腳本會自動安裝 Node.js、下載專案原始碼，並啟動硬體連線助手。
+# =====================================================================
+# TubitBlockWeb 一鍵自動部署與啟動腳本 (Windows PowerShell)
+# 功能：自動安裝 Node.js、偵測 CPU 架構、下載對應的 ESP32 編譯器、
+#       啟動 HTTP 靜態伺服器與 tubitblock-link 連線服務。
+# =====================================================================
 
 $ErrorActionPreference = "Stop"
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -12,7 +15,7 @@ Write-Host "=======================================================" -Foreground
 Write-Host ""
 
 # ---- 第一步：檢查 Node.js 環境 ----
-Write-Host "[1/3] 正在檢查 Node.js 環境..." -ForegroundColor Yellow
+Write-Host "[1/4] 正在檢查 Node.js 環境..." -ForegroundColor Yellow
 
 $npmPath = Get-Command npm -ErrorAction SilentlyContinue
 if (-not $npmPath) {
@@ -51,21 +54,24 @@ if (-not $npmPath) {
 Write-Host "  [OK] 已找到 Node.js：$($npmPath.Source)" -ForegroundColor Green
 
 # ---- 第二步：尋找或下載專案原始碼 ----
-Write-Host "[2/3] 正在檢查專案檔案..." -ForegroundColor Yellow
+Write-Host "[2/4] 正在檢查專案檔案..." -ForegroundColor Yellow
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$projectRoot = $null
 $linkDir = $null
 
 # 依序搜尋可能的專案位置
 $candidates = @(
-    (Join-Path $scriptDir "openblock-link"),
-    (Join-Path $scriptDir "TubitBlockWeb\openblock-link"),
-    (Join-Path $scriptDir "TubitBlockWeb-main\openblock-link")
+    $scriptDir,
+    (Join-Path $scriptDir "TubitBlockWeb"),
+    (Join-Path $scriptDir "TubitBlockWeb-main")
 )
 
 foreach ($candidate in $candidates) {
-    if (Test-Path (Join-Path $candidate "package.json")) {
-        $linkDir = $candidate
+    $testLink = Join-Path $candidate "tubitblock-link"
+    if (Test-Path (Join-Path $testLink "package.json")) {
+        $projectRoot = $candidate
+        $linkDir = $testLink
         break
     }
 }
@@ -77,30 +83,23 @@ if (-not $linkDir) {
     $gitPath = Get-Command git -ErrorAction SilentlyContinue
     if ($gitPath) {
         Write-Host "  偵測到 Git，正在使用淺層複製 (--depth 1) 加速下載..." -ForegroundColor Cyan
-        Write-Host "  (僅下載最新版本的檔案，略過歷史紀錄，速度將大幅提升)" -ForegroundColor DarkGray
-        Write-Host ""
         Set-Location $scriptDir
         git clone --depth 1 "https://github.com/kevinkidtw/TubitBlockWeb.git"
     } else {
         Write-Host "  系統沒有安裝 Git，改用壓縮包下載..." -ForegroundColor Cyan
-        Write-Host "  (檔案較大約 1.5GB，下載時間視網路速度而定)" -ForegroundColor DarkGray
-        Write-Host ""
+        Write-Host "  (檔案較大，下載時間視網路速度而定)" -ForegroundColor DarkGray
         $zipPath = Join-Path $scriptDir "TubitBlockWeb.zip"
 
-        # 優先使用 BITS 傳輸 (支援進度條與斷點續傳)
         try {
             Import-Module BitsTransfer -ErrorAction Stop
             Write-Host "  使用 BITS 智慧傳輸中 (支援斷線續傳)..." -ForegroundColor Green
-            Start-BitsTransfer -Source "https://github.com/kevinkidtw/TubitBlockWeb/archive/refs/heads/main.zip" -Destination $zipPath -Description "正在下載 TubitBlockWeb 專案壓縮包 (支援斷線續傳)..." -DisplayName "TubitBlockWeb"
+            Start-BitsTransfer -Source "https://github.com/kevinkidtw/TubitBlockWeb/archive/refs/heads/main.zip" -Destination $zipPath -Description "正在下載 TubitBlockWeb 專案壓縮包..." -DisplayName "TubitBlockWeb"
         } catch {
-            Write-Host "  BITS 傳輸不可用，改用備援方式下載 (無法斷點續傳)..." -ForegroundColor Yellow
+            Write-Host "  BITS 傳輸不可用，改用備援方式下載..." -ForegroundColor Yellow
             Invoke-WebRequest -Uri "https://github.com/kevinkidtw/TubitBlockWeb/archive/refs/heads/main.zip" -OutFile $zipPath
         }
 
-        Write-Host ""
         Write-Host "  正在解壓縮檔案..." -ForegroundColor Yellow
-        Write-Host "  此步驟正在處理大型檔案，畫面暫時停止是正常現象。" -ForegroundColor DarkGray
-        Write-Host "  請耐心等候 1-3 分鐘，切勿關閉此視窗！" -ForegroundColor DarkGray
         Expand-Archive -Path $zipPath -DestinationPath $scriptDir -Force
         Remove-Item $zipPath -ErrorAction SilentlyContinue
         $extractedDir = Join-Path $scriptDir "TubitBlockWeb-main"
@@ -110,34 +109,182 @@ if (-not $linkDir) {
         }
     }
 
-    $linkDir = Join-Path $scriptDir "TubitBlockWeb\openblock-link"
+    $projectRoot = Join-Path $scriptDir "TubitBlockWeb"
+    $linkDir = Join-Path $projectRoot "tubitblock-link"
 
     if (-not (Test-Path (Join-Path $linkDir "package.json"))) {
-        Write-Host ""
         Write-Host "  [錯誤] 下載失敗或專案結構異常。" -ForegroundColor Red
-        Write-Host "  請手動前往 https://github.com/kevinkidtw/TubitBlockWeb 下載。" -ForegroundColor Red
         exit 1
     }
-
-    Write-Host ""
-    Write-Host "  正在安裝專案所需的 npm 套件..." -ForegroundColor Yellow
-    Write-Host "  此步驟需要下載並安裝數百個小型模組，畫面暫時停止是正常現象。" -ForegroundColor DarkGray
-    Write-Host "  請耐心等候 1-3 分鐘，切勿關閉此視窗！" -ForegroundColor DarkGray
-    Set-Location $linkDir
-    npm install
 }
 
 Write-Host "  [OK] 已找到專案目錄：$linkDir" -ForegroundColor Green
 
-# ---- 第三步：啟動連線服務 ----
-Write-Host "[3/3] 正在啟動硬體連線助手..." -ForegroundColor Yellow
+# ---- 第三步：偵測系統架構並下載 ESP32 編譯器工具鏈 ----
+Write-Host "[3/4] 正在檢查 ESP32 編譯器工具鏈..." -ForegroundColor Yellow
+
+$toolsDir = Join-Path $linkDir "tools\Arduino\packages\esp32\tools"
+$arch = $env:PROCESSOR_ARCHITECTURE
+Write-Host "  CPU 架構: $arch"
+Write-Host "  對應平台: Windows x64"
+
+# 定義 6 個需要下載的工具
+$toolList = @(
+    @{
+        Name = "esp-x32 (Xtensa 編譯器)"
+        Url = "https://github.com/espressif/crosstool-NG/releases/download/esp-13.2.0_20240530/xtensa-esp-elf-13.2.0_20240530-x86_64-w64-mingw32.zip"
+        DestDir = "esp-x32\2405"
+        StripPrefix = "xtensa-esp-elf"
+    },
+    @{
+        Name = "esp-rv32 (RISC-V 編譯器)"
+        Url = "https://github.com/espressif/crosstool-NG/releases/download/esp-13.2.0_20240530/riscv32-esp-elf-13.2.0_20240530-x86_64-w64-mingw32.zip"
+        DestDir = "esp-rv32\2405"
+        StripPrefix = "riscv32-esp-elf"
+    },
+    @{
+        Name = "esptool_py (燒錄工具)"
+        Url = "https://github.com/espressif/arduino-esp32/releases/download/3.1.0-RC3/esptool-v4.9.dev3-win64.zip"
+        DestDir = "esptool_py\4.9.dev3"
+        StripPrefix = "esptool"
+    },
+    @{
+        Name = "openocd-esp32 (除錯工具)"
+        Url = "https://github.com/espressif/openocd-esp32/releases/download/v0.12.0-esp32-20241016/openocd-esp32-win64-0.12.0-esp32-20241016.zip"
+        DestDir = "openocd-esp32\v0.12.0-esp32-20241016"
+        StripPrefix = "openocd-esp32"
+    },
+    @{
+        Name = "xtensa-esp-elf-gdb (Xtensa GDB)"
+        Url = "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v14.2_20240403/xtensa-esp-elf-gdb-14.2_20240403-x86_64-w64-mingw32.zip"
+        DestDir = "xtensa-esp-elf-gdb\14.2_20240403"
+        StripPrefix = "xtensa-esp-elf-gdb"
+    },
+    @{
+        Name = "riscv32-esp-elf-gdb (RISC-V GDB)"
+        Url = "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v14.2_20240403/riscv32-esp-elf-gdb-14.2_20240403-x86_64-w64-mingw32.zip"
+        DestDir = "riscv32-esp-elf-gdb\14.2_20240403"
+        StripPrefix = "riscv32-esp-elf-gdb"
+    }
+)
+
+function Download-EspTool {
+    param(
+        [string]$Name,
+        [string]$Url,
+        [string]$DestDir,
+        [string]$StripPrefix
+    )
+
+    $fullDest = Join-Path $toolsDir $DestDir
+
+    # 檢查是否已存在（目錄非空代表已下載）
+    if ((Test-Path $fullDest) -and (Get-ChildItem $fullDest -ErrorAction SilentlyContinue | Measure-Object).Count -gt 0) {
+        Write-Host "  [OK] $Name 已存在，跳過下載" -ForegroundColor Green
+        return
+    }
+
+    Write-Host "  [DL] 正在下載 $Name ..." -ForegroundColor Cyan
+    $zipFile = Join-Path $env:TEMP "esp32_tool_$(Get-Random).zip"
+    $extractTemp = Join-Path $env:TEMP "esp32_extract_$(Get-Random)"
+
+    try {
+        # 優先使用 BITS（支援進度條和斷點續傳）
+        Import-Module BitsTransfer -ErrorAction Stop
+        Start-BitsTransfer -Source $Url -Destination $zipFile -Description "正在下載 $Name..." -DisplayName $Name
+    } catch {
+        # 備援：直接下載
+        Write-Host "    改用備援方式下載 (可能較慢)..." -ForegroundColor Yellow
+        Invoke-WebRequest -Uri $Url -OutFile $zipFile
+    }
+
+    Write-Host "  [EX] 正在解壓 $Name ..." -ForegroundColor Cyan
+
+    # 解壓到臨時目錄
+    New-Item -ItemType Directory -Path $extractTemp -Force | Out-Null
+    Expand-Archive -Path $zipFile -DestinationPath $extractTemp -Force
+
+    # 建立目標目錄
+    New-Item -ItemType Directory -Path $fullDest -Force | Out-Null
+
+    # 移動檔案（去掉頂層資料夾）
+    $innerDir = Join-Path $extractTemp $StripPrefix
+    if (Test-Path $innerDir) {
+        Get-ChildItem -Path $innerDir | Move-Item -Destination $fullDest -Force
+    } else {
+        # 如果沒有頂層目錄（直接就是檔案），全部移動
+        Get-ChildItem -Path $extractTemp | Move-Item -Destination $fullDest -Force
+    }
+
+    # 清理
+    Remove-Item $zipFile -Force -ErrorAction SilentlyContinue
+    Remove-Item $extractTemp -Recurse -Force -ErrorAction SilentlyContinue
+
+    Write-Host "  [OK] $Name 下載完成" -ForegroundColor Green
+}
+
+Write-Host ""
+
+foreach ($tool in $toolList) {
+    Download-EspTool -Name $tool.Name -Url $tool.Url -DestDir $tool.DestDir -StripPrefix $tool.StripPrefix
+}
+
+Write-Host ""
+Write-Host "  ESP32 編譯器工具鏈就緒" -ForegroundColor Green
+
+# ---- 安裝 npm 依賴 ----
+Write-Host ""
+Write-Host "正在檢查並安裝專案依賴套件 (npm install)..." -ForegroundColor Yellow
+Set-Location $linkDir
+npm install
+
+# ---- 第四步：啟動服務 ----
+Write-Host "[4/4] 正在啟動硬體連線助手..." -ForegroundColor Yellow
+Write-Host ""
+
+# 啟動 HTTP 靜態檔案伺服器 (port 8080)
+Write-Host "正在啟動 HTTP 靜態伺服器 (port 8080)..." -ForegroundColor Cyan
+
+$pythonPath = Get-Command python3 -ErrorAction SilentlyContinue
+if (-not $pythonPath) {
+    $pythonPath = Get-Command python -ErrorAction SilentlyContinue
+}
+
+if ($pythonPath) {
+    $httpJob = Start-Job -ScriptBlock {
+        param($root, $py)
+        & $py -m http.server 8080 --directory $root
+    } -ArgumentList $projectRoot, $pythonPath.Source
+    Write-Host "  HTTP 伺服器已啟動 (使用 Python)" -ForegroundColor Green
+} else {
+    # 嘗試使用 npx serve 作為備援
+    $npxPath = Get-Command npx -ErrorAction SilentlyContinue
+    if ($npxPath) {
+        $httpJob = Start-Job -ScriptBlock {
+            param($root)
+            npx -y serve $root -l 8080 --no-clipboard
+        } -ArgumentList $projectRoot
+        Write-Host "  HTTP 伺服器已啟動 (使用 npx serve)" -ForegroundColor Green
+    } else {
+        Write-Host "  [警告] 找不到 Python 或 npx，無法啟動 HTTP 靜態伺服器！" -ForegroundColor Yellow
+        Write-Host "  請手動使用瀏覽器開啟 www/index.html 檔案。" -ForegroundColor Yellow
+    }
+}
+
 Write-Host ""
 Write-Host "=======================================================" -ForegroundColor Green
 Write-Host "  TubitBlockWeb 硬體連線助手啟動中！" -ForegroundColor Green
 Write-Host "  請勿關閉此視窗，把它最小化即可。" -ForegroundColor Green
-Write-Host "  現在請打開瀏覽器，前往老師提供的網頁連結開始寫程式！" -ForegroundColor Green
+Write-Host "" -ForegroundColor Green
+Write-Host "  請用瀏覽器開啟: http://localhost:8080/www/index.html" -ForegroundColor Green
 Write-Host "=======================================================" -ForegroundColor Green
 Write-Host ""
 
 Set-Location $linkDir
 npm start
+
+# 當 npm start 結束時，也關閉 HTTP 伺服器
+if ($httpJob) {
+    Stop-Job $httpJob -ErrorAction SilentlyContinue
+    Remove-Job $httpJob -ErrorAction SilentlyContinue
+}

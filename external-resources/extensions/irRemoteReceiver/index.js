@@ -21,7 +21,7 @@ const irRemoteReceiver = formatMessage => ({
     library: 'lib',
     official: true,
     tags: ['communication'],
-    helpLink: 'https://wiki.openblock.cc'
+    helpLink: 'https://wiki.tubitblock.cc'
 });
 
 module.exports = irRemoteReceiver;

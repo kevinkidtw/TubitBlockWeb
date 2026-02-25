@@ -2,11 +2,11 @@
     "updater": {
         "default": {
             "provider": "github",
-            "repo": "openblockcc/external-resources-v3"
+            "repo": "tubitblockcc/external-resources-v3"
         },
         "cn": {
             "provider": "gitee",
-            "repo": "openblockcc/external-resources-v3"
+            "repo": "tubitblockcc/external-resources-v3"
         }
     },
     "version": "1.0.0"

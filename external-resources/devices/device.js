@@ -1,6 +1,6 @@
-// OpenBlock 設備列表配置
+// TUbitBlock 設備列表配置
 // 定制TubitBlock專案的設備選擇界面
-// 根據 https://wiki.openblock.cc/zh/developer-guide/plugin-development/customizing-device-list
+// 根據 https://wiki.tubitblock.cc/zh/developer-guide/plugin-development/customizing-device-list
 
 module.exports = [
     // TU:bit V2 設備 (主要設備)

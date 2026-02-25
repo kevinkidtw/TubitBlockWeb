@@ -1,6 +1,6 @@
 /**
  * Registers the Scratch extension for ultrasonic sensor functionality.
- * @return {class} The OpenBlockUltrasonicBlocks class.
+ * @return {class} The TUbitBlockUltrasonicBlocks class.
  */
 function registerScratchExtension () { // eslint-disable-line func-style
     // Determine the global object based on the environment (Node.js or browser).
@@ -23,7 +23,7 @@ function registerScratchExtension () { // eslint-disable-line func-style
     /**
      * Scratch 3.0 blocks to interact with an ultrasonic sensor peripheral.
      */
-    class OpenBlockUltrasonicBlocks {
+    class TUbitBlockUltrasonicBlocks {
 
         /**
          * The ID of the extension.
@@ -68,7 +68,7 @@ function registerScratchExtension () { // eslint-disable-line func-style
         }
 
         /**
-         * Constructs an OpenBlockUltrasonicBlocks instance.
+         * Constructs an TUbitBlockUltrasonicBlocks instance.
          * @param {Runtime} _runtime - The Scratch 3.0 runtime.
          * @param {DeviceInstance} _deviceInstance - The device instance currently running on the virtual machine.
          */
@@ -172,7 +172,7 @@ function registerScratchExtension () { // eslint-disable-line func-style
         }
     }
 
-    return OpenBlockUltrasonicBlocks;
+    return TUbitBlockUltrasonicBlocks;
 }
 
 exports = registerScratchExtension;

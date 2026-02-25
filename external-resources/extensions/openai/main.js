@@ -24,7 +24,7 @@ function registerScratchExtension () {
     /**
      * Scratch 3.0 extension for interacting with OpenAI.
      */
-    class OpenBlockOpenaiBlocks {
+    class TUbitBlockOpenaiBlocks {
         /**
          * The ID of the extension.
          * @return {string} The extension ID
@@ -387,7 +387,7 @@ function registerScratchExtension () {
         }
     }
 
-    return OpenBlockOpenaiBlocks;
+    return TUbitBlockOpenaiBlocks;
 }
 
 exports = registerScratchExtension;

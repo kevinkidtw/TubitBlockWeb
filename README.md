@@ -9,9 +9,9 @@ TubitBlock 是一個基於網頁的視覺化積木程式設計平臺，專為學
 1. **網頁前端介面 (TubitBlock Web)**：
    - 包含你所看到的所有積木、舞台與操作介面。
    - 它可以免費架設在網頁伺服器（如 GitHub Pages 或學校伺服器）上。學生只要有網址就能打開，完全不需要安裝龐大的應用程式。
-2. **硬體連線助手 (OpenBlock Link)**：
+2. **硬體連線助手 (TUbitBlock Link)**：
    - 瀏覽器基於安全性考量，無法直接控制你插在電腦 USB 上的開發板。
-   - 因此，我們提供了一個名為 `openblock-link` 的輕量背景啟動程式。學生只需在自己的電腦上開啟它，它就會像橋樑一樣，負責將網頁上的積木轉換為 C++ 程式碼，並安全地燒錄進你的硬體中。
+   - 因此，我們提供了一個名為 `tubitblock-link` 的輕量背景啟動程式。學生只需在自己的電腦上開啟它，它就會像橋樑一樣，負責將網頁上的積木轉換為 C++ 程式碼，並安全地燒錄進你的硬體中。
 
 ---
 
@@ -44,7 +44,7 @@ TubitBlock 是一個基於網頁的視覺化積木程式設計平臺，專為學
 1. **手動安裝 Node.js**：如果腳本無法自動安裝，請自行前往 [Node.js 官方網站](https://nodejs.org/) 下載並安裝 **LTS (長期維護版)**。
 2. **手動下載專案壓縮包**：在本頁面右上角點擊綠色按鈕 **`<> Code`**，選擇 **`Download ZIP`** 下載整個專案，並解壓縮到您的電腦上。
 3. **開啟終端機/命令提示字元並啟動**：
-   使用 `cd` 指令進入解壓縮後的 `openblock-link` 資料夾。例如 `cd Desktop\TubitBlockWeb-main\openblock-link`。
+   使用 `cd` 指令進入解壓縮後的 `tubitblock-link` 資料夾。例如 `cd Desktop\TubitBlockWeb-main\tubitblock-link`。
    接著依序輸入 `npm install` 以及 `npm start` 讓它在背景執行。
 
 ### 第三步：開啟網頁寫程式
@@ -96,7 +96,7 @@ TubitBlock 是一個基於網頁的視覺化積木程式設計平臺，專為學
    nohup python3 -m http.server 8080 -d ./ > server.log 2>&1 &
    ```
 
-4. 現在，只要讓學生打開瀏覽器連線至 `http://<您的伺服器IP>:8080/www/index.html` 即可看見介面。（注意：學生自己的電腦端依然要執行前面教學的 `openblock-link` 背景程式才能燒錄硬體）。
+4. 現在，只要讓學生打開瀏覽器連線至 `http://<您的伺服器IP>:8080/www/index.html` 即可看見介面。（注意：學生自己的電腦端依然要執行前面教學的 `tubitblock-link` 背景程式才能燒錄硬體）。
 
 ### 🛠 教學資源擴充：如何新增硬體設備與感測器？
 
@@ -112,7 +112,16 @@ TubitBlock 強大的地方在於極高的客製化彈性。若要新增學校獨
    - `generator.js`：定義該積木拉接後，要產生什麼樣的 C/C++ 程式碼。
 3. **補充 Arduino 第三方函式庫 (非常重要)**：
    - 若你的感測器會 `#include <某某Library.h>`，你必須將這個第三方 C++ 函式庫夾帶在專案中。
-   - 本機部署時，請務必將該函式庫資料夾放入 `openblock-link/tools/Arduino/libraries/` 目錄下。如此一來，學生在網頁端點擊「上傳」時，背景的 Arduino 編譯器才能正確找到並編譯你的客製化感測器驅動程式。
+   - 本機部署時，請務必將該函式庫資料夾放入 `tubitblock-link/tools/Arduino/libraries/` 目錄下。如此一來，學生在網頁端點擊「上傳」時，背景的 Arduino 編譯器才能正確找到並編譯你的客製化感測器驅動程式。
+
+---
+
+## 📝 近期重要更新紀錄 (Changelog)
+
+- **OS-Specific 編譯工具鏈自動下載**：全面升級了 `start_link.sh` (Mac/Linux) 與 `start_link.ps1` (Windows) 啟動腳本。現在腳本會自動偵測使用者的作業系統與 CPU 架構（支援 macOS ARM64 / Intel、Windows x64、Linux x86_64），並從 GitHub Releases 按需下載對應的 6 個 ESP32 編譯器工具，避免儲存庫過於龐大，徹底解決跨平臺相容性問題。
+- **專案瘦身與清理**：清理了 1GB 以上的舊版工具包壓縮檔（如過期的 `openblock-tools-darwin-x64-v2.11.1.7z`），並移除了殘留的日誌與空目錄，完善了 `.gitignore`，將專案體積大幅縮小。
+- **TUbitBlock 全面更名與品牌重塑**：將全專案超過 80 個檔案內的歷史 `openblock` 參考全面更名為 `tubitblock`。包含主目錄重命名為 `tubitblock-link`、更新環境變數 (`.tubitblockData`)、修改 Arduino C++ 擴充函式庫檔名。針對無法手動修改的 webpack 編譯產物，則創新地利用 `electron-shim.js` 加入 `MutationObserver` 進行瀏覽器端動態 DOM 文字修補。
+- **一鍵啟動腳本包含靜態伺服器**：修復了網頁版找不到擴展圖片的 404 問題。啟動腳本現在會完整建立本地的全端環境，包含啟動 HTTP 靜態檔案伺服器 (Port 8080) 與 WebSocket 通訊服務 (Port 20111)。
 
 ---
 

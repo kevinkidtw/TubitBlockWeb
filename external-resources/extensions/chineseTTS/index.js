@@ -21,7 +21,7 @@ const chineseTTS = formatMessage => ({
     library: 'lib',
     official: true,
     tags: ['actuator'],
-    helpLink: 'https://wiki.openblock.cc'
+    helpLink: 'https://wiki.tubitblock.cc'
 });
 
 module.exports = chineseTTS;

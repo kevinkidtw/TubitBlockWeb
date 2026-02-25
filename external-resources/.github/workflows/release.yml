@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: '16.x'
 
-      - run: npm i -g openblock-resource@latest
+      - run: npm i -g tubitblock-resource@latest
 
       - name: Pre-process resources
         run: |
@@ -55,7 +55,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref_name }}
-          release_name: OpenBlock External Resources ${{ github.ref_name }}
+          release_name: TUbitBlock External Resources ${{ github.ref_name }}
           body: |
             ## Change Log (en)
 
@@ -127,7 +127,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          file: "./dist/OpenBlock-External-Resources*"
+          file: "./dist/TUbitBlock-External-Resources*"
           release_id: ${{needs.create-release.outputs.id}}
 
   build-mac:
@@ -150,7 +150,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          file: "./dist/OpenBlock-External-Resources*"
+          file: "./dist/TUbitBlock-External-Resources*"
           release_id: ${{needs.create-release.outputs.id}}
 
   build-linux:
@@ -173,5 +173,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          file: "./dist/OpenBlock-External-Resources*"
+          file: "./dist/TUbitBlock-External-Resources*"
           release_id: ${{needs.create-release.outputs.id}}

@@ -1,8 +1,10 @@
 .DS_Store
 *.log
-.openblockData/
-openblock-link/node_modules/
-openblock-link/.openblockData/
-openblock-link/tools/Arduino/hardware/
-openblock-link/tools/Arduino/tools/
+*.7z
+.tubitblockData/
+tubitblock-link/node_modules/
+tubitblock-link/.tubitblockData/
+tubitblock-link/tmp/
+tubitblock-link/tools/Arduino/hardware/
+tubitblock-link/tools/Arduino/tools/
 *.pyc

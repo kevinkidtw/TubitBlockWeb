@@ -1,9 +1,9 @@
 /**
- * Electron Shim for OpenBlock Web Deployment
+ * Electron Shim for TUbitBlock Web Deployment
  * 
  * This script provides browser-compatible stubs for Electron APIs
  * (ipcRenderer, clipboard, @electron/remote, etc.) so the Webpack-bundled
- * OpenBlock GUI can run in a standard web browser without modifications
+ * TUbitBlock GUI can run in a standard web browser without modifications
  * to the minified bundle code.
  *
  * It intercepts `require()` calls for 'electron', 'fs', 'path', and
@@ -15,16 +15,16 @@
 
     // ---- Global Error Handlers (MUST be first) ----
     window.onerror = function (msg, url, line, col, error) {
-        console.error('[OpenBlock Web] GLOBAL ERROR:', msg, '\n  URL:', url, '\n  Line:', line, '\n  Col:', col, '\n  Error:', error);
+        console.error('[TUbitBlock Web] GLOBAL ERROR:', msg, '\n  URL:', url, '\n  Line:', line, '\n  Col:', col, '\n  Error:', error);
         return false; // Don't suppress the error
     };
     window.addEventListener('unhandledrejection', function (event) {
-        console.error('[OpenBlock Web] UNHANDLED PROMISE REJECTION:', event.reason);
+        console.error('[TUbitBlock Web] UNHANDLED PROMISE REJECTION:', event.reason);
         if (event.reason && event.reason.stack) {
-            console.error('[OpenBlock Web] Stack:', event.reason.stack);
+            console.error('[TUbitBlock Web] Stack:', event.reason.stack);
         }
     });
-    console.log('[OpenBlock Web] Global error handlers installed.');
+    console.log('[TUbitBlock Web] Global error handlers installed.');
 
     // ---- Node.js global compatibility ----
     // Many npm packages reference `global` (Node.js global object)
@@ -96,7 +96,7 @@
                     meta: {
                         semver: '3.0.0',
                         vm: '0.2.0',
-                        agent: 'OpenBlock-Web'
+                        agent: 'TUbitBlock-Web'
                     }
                 }));
             }
@@ -251,7 +251,7 @@
             platform: 'browser',
             type: 'renderer',
             resourcesPath: '.',
-            contextId: 'openblock-web-context',
+            contextId: 'tubitblock-web-context',
             versions: { node: '0.0.0', electron: '25.0.0' },
             cwd: function () { return '/'; },
             nextTick: function (fn) { setTimeout(fn, 0); }
@@ -260,7 +260,7 @@
         if (!window.process.env) window.process.env = {};
         window.process.env.NODE_ENV = 'production';
         if (!window.process.resourcesPath) window.process.resourcesPath = '.';
-        if (!window.process.contextId) window.process.contextId = 'openblock-web-context';
+        if (!window.process.contextId) window.process.contextId = 'tubitblock-web-context';
         if (!window.process.type) window.process.type = 'renderer';
         if (!window.process.versions) window.process.versions = {};
         if (!window.process.versions.electron) window.process.versions.electron = '25.0.0';
@@ -733,7 +733,7 @@
         window.module = { exports: {} };
     }
 
-    console.log('[OpenBlock Web] Electron shim loaded successfully.');
+    console.log('[TUbitBlock Web] Electron shim loaded successfully.');
 
     // ---- Monkey-patch webpackJsonp to catch SB1 converter FixedAsciiString assertion ----
     // The scratch-sb1-converter (module 3197) throws "Non-ascii character in FixedAsciiString"
@@ -767,8 +767,8 @@
         };
     }
 
-    // ---- Fetch Interceptor: Redirect OpenBlock Resource Server (127.0.0.1:20112) ----
-    // The OpenBlock GUI fetches device lists, extension data, and assets from a local
+    // ---- Fetch Interceptor: Redirect TUbitBlock Resource Server (127.0.0.1:20112) ----
+    // The TUbitBlock GUI fetches device lists, extension data, and assets from a local
     // resource server at http://127.0.0.1:20112/. In the web deployment, we intercept
     // these requests and serve them from the static ../external-resources/ directory.
     (function () {
@@ -814,7 +814,7 @@
             // Pass through all non-resource-server requests
             return _originalFetch.apply(window, arguments);
         };
-        console.log('[OpenBlock Web] Resource server fetch interceptor installed.');
+        console.log('[TUbitBlock Web] Resource server fetch interceptor installed.');
     })();
 
 
@@ -834,7 +834,7 @@
             }
             return _origXHROpen.apply(this, arguments);
         };
-        console.log('[OpenBlock Web] XHR resource server interceptor installed.');
+        console.log('[TUbitBlock Web] XHR resource server interceptor installed.');
     })();
 
     // ---- DOM Element Interceptor ----
@@ -888,7 +888,7 @@
                 configurable: true,
                 enumerable: true
             });
-            console.log('[OpenBlock Web] Script src interceptor installed.');
+            console.log('[TUbitBlock Web] Script src interceptor installed.');
         }
 
         // ---- MutationObserver for img/source elements ----
@@ -932,7 +932,7 @@
                 attributeFilter: ['src']
             });
             scanAllImages();
-            console.log('[OpenBlock Web] DOM element interceptor (MutationObserver) installed.');
+            console.log('[TUbitBlock Web] DOM element interceptor (MutationObserver) installed.');
         }
 
         if (document.body) {
@@ -943,7 +943,7 @@
     })();
 
     // ---- VM loadProject patch ----
-    // The scratch-parser's SB3 validator (AJV schema) rejects OpenBlock's
+    // The scratch-parser's SB3 validator (AJV schema) rejects TUbitBlock's
     // default project JSON because it omits some SB3-required fields
     // (monitors, extensions, layerOrder, comments, tempo, videoState, etc.).
     // When validation fails, loadProject falls back to the SB1 parser which
@@ -951,7 +951,7 @@
     // This patch bypasses the validator entirely: it JSON-parses the input,
     // sets projectVersion = 3, and calls deserializeProject directly.
     (function () {
-        console.log('[OpenBlock Web] Installing VM loadProject patch...');
+        console.log('[TUbitBlock Web] Installing VM loadProject patch...');
 
         // Poll for the VM to become available (created by React)
         var patchInterval = setInterval(function () {
@@ -984,7 +984,7 @@
             var origLoadProject = vm.loadProject.bind(vm);
 
             vm.loadProject = function (input) {
-                console.log('[OpenBlock Web] loadProject intercepted, type:', typeof input);
+                console.log('[TUbitBlock Web] loadProject intercepted, type:', typeof input);
 
                 // Convert input to a JSON object
                 var projectJSON;
@@ -996,13 +996,13 @@
                     } else if (input instanceof ArrayBuffer || ArrayBuffer.isView(input)) {
                         // Binary input — could be a .sb3 zip or .sb2 binary
                         // Fall back to original loadProject for binary data
-                        console.log('[OpenBlock Web] Binary project data, using original loadProject');
+                        console.log('[TUbitBlock Web] Binary project data, using original loadProject');
                         return origLoadProject(input);
                     } else {
                         projectJSON = JSON.parse(JSON.stringify(input));
                     }
                 } catch (parseError) {
-                    console.error('[OpenBlock Web] Failed to parse project JSON:', parseError);
+                    console.error('[TUbitBlock Web] Failed to parse project JSON:', parseError);
                     return origLoadProject(input);
                 }
 
@@ -1010,14 +1010,14 @@
                 if (projectJSON.targets && projectJSON.meta) {
                     // SB3 format (Scratch 3.0)
                     projectJSON.projectVersion = 3;
-                    console.log('[OpenBlock Web] Detected SB3 format, skipping validator');
+                    console.log('[TUbitBlock Web] Detected SB3 format, skipping validator');
                 } else if (projectJSON.objName) {
                     // SB2 format (Scratch 2.0)
                     projectJSON.projectVersion = 2;
-                    console.log('[OpenBlock Web] Detected SB2 format, skipping validator');
+                    console.log('[TUbitBlock Web] Detected SB2 format, skipping validator');
                 } else {
                     // Unknown format — try original path
-                    console.warn('[OpenBlock Web] Unknown project format, using original loadProject');
+                    console.warn('[TUbitBlock Web] Unknown project format, using original loadProject');
                     return origLoadProject(input);
                 }
 
@@ -1025,32 +1025,32 @@
                 return vm.deserializeProject(projectJSON, null)
                     .then(function () {
                         vm.runtime.emitProjectLoaded();
-                        console.log('[OpenBlock Web] Project loaded successfully, targets:', vm.runtime.targets.length);
+                        console.log('[TUbitBlock Web] Project loaded successfully, targets:', vm.runtime.targets.length);
                     })
                     .catch(function (error) {
-                        console.error('[OpenBlock Web] deserializeProject failed:', error);
+                        console.error('[TUbitBlock Web] deserializeProject failed:', error);
                         return Promise.reject(error);
                     });
             };
 
             vm._webPatched = true;
             clearInterval(patchInterval);
-            console.log('[OpenBlock Web] VM loadProject patched successfully.');
+            console.log('[TUbitBlock Web] VM loadProject patched successfully.');
 
             // If project wasn't loaded yet (0 targets), try loading default project
             if (vm.runtime.targets.length === 0) {
-                console.log('[OpenBlock Web] No targets loaded, attempting default project load...');
+                console.log('[TUbitBlock Web] No targets loaded, attempting default project load...');
                 var storage = vm.runtime.storage;
                 if (storage) {
                     storage.load(storage.AssetType.Project, '0', storage.DataFormat.JSON)
                         .then(function (projectAsset) {
                             if (projectAsset && projectAsset.data) {
-                                console.log('[OpenBlock Web] Loading default project...');
+                                console.log('[TUbitBlock Web] Loading default project...');
                                 vm.loadProject(projectAsset.data);
                             }
                         })
                         .catch(function (e) {
-                            console.error('[OpenBlock Web] Failed to load default project:', e);
+                            console.error('[TUbitBlock Web] Failed to load default project:', e);
                         });
                 }
             }
@@ -1062,4 +1062,85 @@
         }, 30000);
     })();
 
+    // ---- Runtime Brand Patcher: Replace "OpenBlock" display text ----
+    // The compiled webpack bundles contain hardcoded "OpenBlock" strings.
+    // This section uses MutationObserver to replace all visible "OpenBlock"
+    // text with "TUbitBlock" after React renders the DOM.
+    (function () {
+        var BRAND_MAP = [
+            [/OpenBlockDesktop/g, 'TUbitBlockDesktop'],
+            [/OpenBlock\.cc/g, 'TUbitBlock'],
+            [/OpenBlock/g, 'TUbitBlock']
+        ];
+
+        function patchText(text) {
+            var result = text;
+            for (var i = 0; i < BRAND_MAP.length; i++) {
+                result = result.replace(BRAND_MAP[i][0], BRAND_MAP[i][1]);
+            }
+            return result;
+        }
+
+        function patchTextNodes(root) {
+            var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+            var node;
+            while ((node = walker.nextNode())) {
+                var patched = patchText(node.nodeValue);
+                if (patched !== node.nodeValue) {
+                    node.nodeValue = patched;
+                }
+            }
+        }
+
+        // Also patch the document title
+        function patchTitle() {
+            if (document.title && document.title.indexOf('OpenBlock') >= 0) {
+                document.title = patchText(document.title);
+            }
+        }
+
+        // Run when DOM is ready
+        function startPatching() {
+            patchTextNodes(document.body);
+            patchTitle();
+
+            // Watch for React re-renders
+            var observer = new MutationObserver(function (mutations) {
+                for (var i = 0; i < mutations.length; i++) {
+                    var m = mutations[i];
+                    if (m.type === 'childList') {
+                        for (var j = 0; j < m.addedNodes.length; j++) {
+                            var node = m.addedNodes[j];
+                            if (node.nodeType === Node.TEXT_NODE) {
+                                var p = patchText(node.nodeValue);
+                                if (p !== node.nodeValue) node.nodeValue = p;
+                            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                                patchTextNodes(node);
+                            }
+                        }
+                    } else if (m.type === 'characterData') {
+                        var p2 = patchText(m.target.nodeValue);
+                        if (p2 !== m.target.nodeValue) m.target.nodeValue = p2;
+                    }
+                }
+                patchTitle();
+            });
+
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
+
+            console.log('[TUbitBlock Web] Brand patcher installed.');
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startPatching);
+        } else {
+            startPatching();
+        }
+    })();
+
 })();
+

@@ -11,7 +11,7 @@ fi
 
 SOURCE_DIR="./"
 BUILD_DIR="dist/pkg"
-INSTALL_DIR="opt/OpenBlockExternalResources"
+INSTALL_DIR="opt/TUbitBlockExternalResources"
 PKGIGNORE_FILE="./buildResources/.pkgignore"
 DEBIAN_DIR="$BUILD_DIR/DEBIAN"
 
@@ -44,4 +44,4 @@ sed -i "s/^Installed-Size: .*/Installed-Size: $INSTALL_SIZE/" "$DEBIAN_DIR/contr
 sed -i "s/^Version: .*/Version: $VERSION/" "$DEBIAN_DIR/control"
 
 # Build the .deb package
-dpkg-deb -b "$BUILD_DIR" "./dist/OpenBlock-External-Resources-v$VERSION.deb"
+dpkg-deb -b "$BUILD_DIR" "./dist/TUbitBlock-External-Resources-v$VERSION.deb"

@@ -18,7 +18,7 @@ const nrf24l01 = formatMessage => ({
     library: 'lib',
     official: true,
     tags: ['communication'],
-    helpLink: 'https://wiki.openblock.cc'
+    helpLink: 'https://wiki.tubitblock.cc'
 });
 
 module.exports = nrf24l01;

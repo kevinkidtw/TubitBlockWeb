@@ -12,7 +12,7 @@ fi
 INSTALL_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 
 if [[ "$(uname)" == "Darwin" ]]; then
-    LAUNCH_AGENT_PLIST="$HOME/Library/LaunchAgents/openblock.cc.openblockExternalResource.setenv.plist"
+    LAUNCH_AGENT_PLIST="$HOME/Library/LaunchAgents/tubitblock.cc.tubitblockExternalResource.setenv.plist"
 
     if [[ -f "$LAUNCH_AGENT_PLIST" ]]; then
         echo "Removing LaunchAgent plist file: $LAUNCH_AGENT_PLIST"

@@ -27,9 +27,9 @@ echo $EXCLUDES
 eval rsync -av $EXCLUDES "$SOURCE_DIR/" "$BUILD_DIR/"
 
 pkgbuild --root ./dist/pkg/ \
-         --identifier openblock.cc.openblock-external-resource \
+         --identifier tubitblock.cc.tubitblock-external-resource \
          --version $VERSION \
-         --install-location /Library/OpenBlockExternalResources \
+         --install-location /Library/TUbitBlockExternalResources \
          --ownership recommended \
          --scripts buildResources/mac-scripts \
-         ./dist/OpenBlock-External-Resources-v$VERSION.pkg
+         ./dist/TUbitBlock-External-Resources-v$VERSION.pkg

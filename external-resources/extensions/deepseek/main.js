@@ -22,7 +22,7 @@ function registerScratchExtension () {
     /**
      * Scratch 3.0 extension for interacting with DeepSeek.
      */
-    class OpenBlockDeepseekBlocks {
+    class TUbitBlockDeepseekBlocks {
         /**
          * The ID of the extension.
          * @return {string} The extension ID
@@ -377,7 +377,7 @@ function registerScratchExtension () {
         }
     }
 
-    return OpenBlockDeepseekBlocks;
+    return TUbitBlockDeepseekBlocks;
 }
 
 exports = registerScratchExtension;

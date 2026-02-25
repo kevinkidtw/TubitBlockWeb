@@ -1,7 +1,0 @@
-{
-   "description": "openocd-utility",
-   "name": "tool-openocd-rp2040-earlephilhower",
-   "system": [ "darwin_x86_64" ],
-   "url": "https://github.com/earlephilhower/pico-quick-toolchain",
-   "version": "5.140200.240929"
-}
