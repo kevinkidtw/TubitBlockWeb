@@ -1,4 +1,4 @@
-﻿﻿# =====================================================================
+﻿# =====================================================================
 # TubitBlockWeb 一鍵自動部署與啟動腳本 (Windows PowerShell)
 # 功能：自動安裝 Node.js/Git、偵測 CPU 架構、下載對應的 ESP32 編譯器、
 #       啟動 HTTP 靜態伺服器與 openblock-link 連線服務。
@@ -10,19 +10,20 @@ $ErrorActionPreference = "Stop"
 # ---- 系統環境偵測 ----
 $osArch = $env:PROCESSOR_ARCHITECTURE
 $osVersion = [System.Environment]::OSVersion.Version
-$osName = (Get-CimInstance Win32_OperatingSystem -ErrorAction SilentlyContinue).Caption
+$osName = "Windows"
+try { $osName = (Get-CimInstance Win32_OperatingSystem -ErrorAction SilentlyContinue).Caption } catch {}
 
 Write-Host ""
 Write-Host "=======================================================" -ForegroundColor Cyan
 Write-Host "  TubitBlockWeb 一鍵自動部署與啟動工具" -ForegroundColor Cyan
 Write-Host "=======================================================" -ForegroundColor Cyan
-Write-Host "  作業系統: $osName" -ForegroundColor DarkGray
-Write-Host "  CPU 架構: $osArch" -ForegroundColor DarkGray
-Write-Host "  系統版本: $($osVersion.Major).$($osVersion.Minor).$($osVersion.Build)" -ForegroundColor DarkGray
+Write-Host "  作業系統 : $osName" -ForegroundColor DarkGray
+Write-Host "  CPU 架構 : $osArch" -ForegroundColor DarkGray
+Write-Host "  系統版本 : $($osVersion.Major).$($osVersion.Minor).$($osVersion.Build)" -ForegroundColor DarkGray
 Write-Host "=======================================================" -ForegroundColor Cyan
 Write-Host ""
 
-# ---- 統一下載函數（不依賴 BITS，支援進度顯示）----
+# ---- 統一下載函數（穩定版，不依賴 BITS / WebClient 非同步）----
 function Download-FileWithProgress {
     param(
         [string]$Url,
@@ -31,50 +32,83 @@ function Download-FileWithProgress {
     )
 
     Write-Host "    正在下載: $DisplayName" -ForegroundColor DarkGray
-    Write-Host "    來源: $Url" -ForegroundColor DarkGray
 
+    # 確保目標檔案不存在（避免鎖定衝突）
+    if (Test-Path $OutFile) {
+        Remove-Item $OutFile -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Milliseconds 300
+    }
+
+    # 使用 .NET HttpClient（同步下載，穩定處理 GitHub 302 重定向）
     try {
-        # 使用 .NET WebClient（支援進度事件，且能跟隨 GitHub 302 重定向）
-        $webClient = New-Object System.Net.WebClient
+        Add-Type -AssemblyName System.Net.Http -ErrorAction SilentlyContinue
+        $handler = New-Object System.Net.Http.HttpClientHandler
+        $handler.AllowAutoRedirect = $true
+        $client = New-Object System.Net.Http.HttpClient($handler)
+        $client.Timeout = [TimeSpan]::FromMinutes(30)
 
-        # 註冊進度回報事件
-        $progressData = @{ LastPercent = -1 }
-        $eventHandler = {
-            param($sender, $e)
-            if ($e.ProgressPercentage -ne $progressData.LastPercent -and $e.ProgressPercentage % 5 -eq 0) {
-                $progressData.LastPercent = $e.ProgressPercentage
-                $receivedMB = [math]::Round($e.BytesReceived / 1MB, 1)
-                $totalMB = if ($e.TotalBytesToReceive -gt 0) { [math]::Round($e.TotalBytesToReceive / 1MB, 1) } else { "?" }
-                Write-Progress -Activity "下載 $DisplayName" -Status "${receivedMB} MB / ${totalMB} MB" -PercentComplete $e.ProgressPercentage
+        # 先發 HEAD 取得檔案大小
+        $totalBytes = 0
+        try {
+            $headResp = $client.SendAsync((New-Object System.Net.Http.HttpRequestMessage([System.Net.Http.HttpMethod]::Head, $Url))).Result
+            $totalBytes = $headResp.Content.Headers.ContentLength
+        } catch {}
+        $totalMB = if ($totalBytes -gt 0) { [math]::Round($totalBytes / 1MB, 1) } else { "?" }
+
+        # 開始下載
+        $response = $client.GetAsync($Url, [System.Net.Http.HttpCompletionOption]::ResponseHeadersRead).Result
+        $response.EnsureSuccessStatusCode() | Out-Null
+        $stream = $response.Content.ReadAsStreamAsync().Result
+        $fileStream = [System.IO.File]::Create($OutFile)
+        $buffer = New-Object byte[] 131072  # 128KB buffer
+        $downloaded = 0
+        $lastReport = 0
+        $sw = [System.Diagnostics.Stopwatch]::StartNew()
+
+        while (($read = $stream.Read($buffer, 0, $buffer.Length)) -gt 0) {
+            $fileStream.Write($buffer, 0, $read)
+            $downloaded += $read
+            $downloadedMB = [math]::Round($downloaded / 1MB, 1)
+
+            # 每秒最多更新一次進度
+            if ($sw.ElapsedMilliseconds - $lastReport -ge 1000) {
+                $lastReport = $sw.ElapsedMilliseconds
+                $speedMB = [math]::Round($downloaded / 1MB / ($sw.ElapsedMilliseconds / 1000), 1)
+                if ($totalBytes -gt 0) {
+                    $pct = [math]::Min(100, [math]::Round($downloaded * 100 / $totalBytes))
+                    Write-Host "`r    [$pct%] ${downloadedMB} MB / ${totalMB} MB  (${speedMB} MB/s)   " -NoNewline -ForegroundColor Cyan
+                } else {
+                    Write-Host "`r    ${downloadedMB} MB  (${speedMB} MB/s)   " -NoNewline -ForegroundColor Cyan
+                }
             }
         }
-        $webClient.add_DownloadProgressChanged($eventHandler)
+        Write-Host ""  # 換行
 
-        # 非同步下載以觸發進度事件
-        $task = $webClient.DownloadFileTaskAsync($Url, $OutFile)
-        while (-not $task.IsCompleted) {
-            Start-Sleep -Milliseconds 200
-            # 處理進度事件
-            [System.Windows.Forms.Application]::DoEvents() 2>$null
-        }
+        $fileStream.Close()
+        $stream.Close()
+        $client.Dispose()
 
-        if ($task.IsFaulted) {
-            throw $task.Exception.InnerException
-        }
-
-        Write-Progress -Activity "下載 $DisplayName" -Completed
         $fileSizeMB = [math]::Round((Get-Item $OutFile).Length / 1MB, 1)
         Write-Host "    下載完成 (${fileSizeMB} MB)" -ForegroundColor Green
     } catch {
-        Write-Host "    WebClient 下載失敗，改用 Invoke-WebRequest..." -ForegroundColor Yellow
-        # 關閉預設進度條避免版面錯亂
+        # 確保清理
+        if ($fileStream) { $fileStream.Close() }
+        if ($stream) { $stream.Close() }
+        if ($client) { $client.Dispose() }
+
+        Write-Host "    HttpClient 下載失敗: $($_.Exception.Message)" -ForegroundColor Yellow
+        Write-Host "    改用 Invoke-WebRequest 備援下載..." -ForegroundColor Yellow
+
+        # 備援：關閉進度條避免版面錯亂
+        $oldPref = $ProgressPreference
         $ProgressPreference = 'SilentlyContinue'
-        Invoke-WebRequest -Uri $Url -OutFile $OutFile -UseBasicParsing
-        $ProgressPreference = 'Continue'
-        $fileSizeMB = [math]::Round((Get-Item $OutFile).Length / 1MB, 1)
-        Write-Host "    下載完成 (${fileSizeMB} MB)" -ForegroundColor Green
-    } finally {
-        if ($webClient) { $webClient.Dispose() }
+        try {
+            Invoke-WebRequest -Uri $Url -OutFile $OutFile -UseBasicParsing
+            $fileSizeMB = [math]::Round((Get-Item $OutFile).Length / 1MB, 1)
+            Write-Host "    下載完成 (${fileSizeMB} MB)" -ForegroundColor Green
+        } finally {
+            $ProgressPreference = $oldPref
+        }
     }
 }
 
@@ -88,7 +122,7 @@ if (-not $npmPath) {
 
     $wingetPath = Get-Command winget -ErrorAction SilentlyContinue
     if ($wingetPath) {
-        Write-Host "  偵測到微軟套件管理員 (winget)，正在安裝 Node.js LTS 版本..."
+        Write-Host "  偵測到 winget，正在安裝 Node.js LTS 版本..."
         winget install -e --id OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements
     } else {
         Write-Host "  正在從 Node.js 官方網站下載安裝檔..."
@@ -178,10 +212,18 @@ if (-not $linkDir) {
 
     $gitPath = Get-Command git -ErrorAction SilentlyContinue
     if ($gitPath) {
-        Write-Host "  使用 Git 淺層複製 (--depth 1) 加速下載..." -ForegroundColor Cyan
+        Write-Host "  使用 Git 淺層複製加速下載（含進度顯示）..." -ForegroundColor Cyan
         Write-Host "  (僅下載最新版本，略過歷史紀錄)" -ForegroundColor DarkGray
+        Write-Host ""
         Set-Location $scriptDir
-        git clone --depth 1 "https://github.com/kevinkidtw/TubitBlockWeb.git"
+
+        # 啟用 Windows 長路徑支援（避免 ESP32 Matter 標頭檔路徑超過 260 字元）
+        git config --global core.longpaths true
+
+        # --progress 確保在非 TTY 環境（PowerShell）也顯示進度
+        git clone --depth 1 --progress "https://github.com/kevinkidtw/TubitBlockWeb.git" 2>&1 | ForEach-Object { Write-Host $_ }
+
+        Write-Host ""
     } else {
         Write-Host "  Git 不可用，改用壓縮包下載..." -ForegroundColor Yellow
         $zipPath = Join-Path $scriptDir "TubitBlockWeb.zip"
