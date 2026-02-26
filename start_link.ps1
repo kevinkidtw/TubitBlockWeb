@@ -212,16 +212,19 @@ if (-not $linkDir) {
 
     $gitPath = Get-Command git -ErrorAction SilentlyContinue
     if ($gitPath) {
-        Write-Host "  使用 Git 淺層複製加速下載（含進度顯示）..." -ForegroundColor Cyan
+        Write-Host "  使用 Git 淺層複製加速下載..." -ForegroundColor Cyan
         Write-Host "  (僅下載最新版本，略過歷史紀錄)" -ForegroundColor DarkGray
         Write-Host ""
         Set-Location $scriptDir
 
         # 啟用 Windows 長路徑支援（避免 ESP32 Matter 標頭檔路徑超過 260 字元）
-        git config --global core.longpaths true
+        & git config --global core.longpaths true
 
-        # --progress 確保在非 TTY 環境（PowerShell）也顯示進度
-        git clone --depth 1 --progress "https://github.com/kevinkidtw/TubitBlockWeb.git" 2>&1 | ForEach-Object { Write-Host $_ }
+        # 暫時允許 stderr 輸出（git 的進度走 stderr），直接輸出到控制台顯示即時進度
+        $oldEAP = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        & cmd /c "git clone --depth 1 --progress https://github.com/kevinkidtw/TubitBlockWeb.git 2>&1"
+        $ErrorActionPreference = $oldEAP
 
         Write-Host ""
     } else {
