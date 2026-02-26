@@ -392,54 +392,18 @@ Write-Host "  此步驟需要下載並安裝數百個小型模組，畫面暫時
 Set-Location $linkDir
 npm install
 
-# ---- 第五步：啟動服務 ----
+# ---- 第五步：啟動 Link 連線服務 ----
 Write-Host "[5/5] 正在啟動硬體連線助手..." -ForegroundColor Yellow
-Write-Host ""
-
-# 啟動 HTTP 靜態檔案伺服器 (port 8080)
-Write-Host "正在啟動 HTTP 靜態伺服器 (port 8080)..." -ForegroundColor Cyan
-
-$pythonPath = Get-Command python3 -ErrorAction SilentlyContinue
-if (-not $pythonPath) {
-    $pythonPath = Get-Command python -ErrorAction SilentlyContinue
-}
-
-$httpJob = $null
-if ($pythonPath) {
-    $httpJob = Start-Job -ScriptBlock {
-        param($root, $py)
-        & $py -m http.server 8080 --directory $root
-    } -ArgumentList $projectRoot, $pythonPath.Source
-    Write-Host "  HTTP 伺服器已啟動 (使用 Python)" -ForegroundColor Green
-} else {
-    # 嘗試使用 npx serve 作為備援
-    $npxPath = Get-Command npx -ErrorAction SilentlyContinue
-    if ($npxPath) {
-        $httpJob = Start-Job -ScriptBlock {
-            param($root)
-            npx -y serve $root -l 8080 --no-clipboard
-        } -ArgumentList $projectRoot
-        Write-Host "  HTTP 伺服器已啟動 (使用 npx serve)" -ForegroundColor Green
-    } else {
-        Write-Host "  [警告] 找不到 Python 或 npx，無法啟動 HTTP 靜態伺服器！" -ForegroundColor Yellow
-        Write-Host "  請手動使用瀏覽器開啟 www\index.html 檔案。" -ForegroundColor Yellow
-    }
-}
-
 Write-Host ""
 Write-Host "=======================================================" -ForegroundColor Green
 Write-Host "  TubitBlockWeb 硬體連線助手啟動中！" -ForegroundColor Green
 Write-Host "  請勿關閉此視窗，把它最小化即可。" -ForegroundColor Green
 Write-Host "" -ForegroundColor Green
-Write-Host "  請用瀏覽器開啟: http://localhost:8080/www/index.html" -ForegroundColor Green
+Write-Host "  本服務負責編譯與燒錄 (port 20111)，" -ForegroundColor Green
+Write-Host "  網頁介面請使用老師提供的 GitHub Pages 網址。" -ForegroundColor Green
 Write-Host "=======================================================" -ForegroundColor Green
 Write-Host ""
 
 Set-Location $linkDir
 npm start
 
-# 當 npm start 結束時，也關閉 HTTP 伺服器
-if ($httpJob) {
-    Stop-Job $httpJob -ErrorAction SilentlyContinue
-    Remove-Job $httpJob -ErrorAction SilentlyContinue
-}
