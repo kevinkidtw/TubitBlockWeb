@@ -179,26 +179,26 @@ if (-not $gitPath) {
     Write-Host "  [OK] 已找到 Git: $($gitPath.Source)" -ForegroundColor Green
 }
 
-# ---- 第三步：尋找或下載專案原始碼（優先使用 Git）----
-Write-Host "[3/5] 正在檢查專案檔案..." -ForegroundColor Yellow
+# ---- 第三步：尋找或下載 Link 服務（僅下載編譯服務，不含網頁前端）----
+# 說明：網頁前端 (www/) 和擴展包 (external-resources/) 由 GitHub Pages 提供，
+#       本地端只需要 Link 服務 (openblock-link/) 進行編譯和燒錄。
+Write-Host "[3/5] 正在檢查 Link 硬體連線服務..." -ForegroundColor Yellow
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$projectRoot = $null
 $linkDir = $null
 
-# 依序搜尋可能的專案位置（同時支援新舊目錄名稱）
-$candidates = @(
+# 搜尋可能的 link 目錄位置（支援新舊目錄名）
+$linkDirNames = @("openblock-link", "tubitblock-link")
+$searchRoots = @(
     $scriptDir,
     (Join-Path $scriptDir "TubitBlockWeb"),
     (Join-Path $scriptDir "TubitBlockWeb-main")
 )
-$linkDirNames = @("openblock-link", "tubitblock-link")
 
-foreach ($candidate in $candidates) {
+foreach ($root in $searchRoots) {
     foreach ($dirName in $linkDirNames) {
-        $testLink = Join-Path $candidate $dirName
+        $testLink = Join-Path $root $dirName
         if (Test-Path (Join-Path $testLink "package.json")) {
-            $projectRoot = $candidate
             $linkDir = $testLink
             break
         }
@@ -207,27 +207,33 @@ foreach ($candidate in $candidates) {
 }
 
 if (-not $linkDir) {
-    Write-Host "  找不到專案原始碼，正在從 GitHub 自動下載..." -ForegroundColor Red
+    Write-Host "  找不到 Link 服務，正在從 GitHub 下載（僅下載編譯服務）..." -ForegroundColor Red
+    Write-Host "  (不會下載網頁前端和擴展包，節省大量下載時間)" -ForegroundColor DarkGray
     Write-Host ""
 
     $gitPath = Get-Command git -ErrorAction SilentlyContinue
     if ($gitPath) {
-        Write-Host "  使用 Git 淺層複製加速下載..." -ForegroundColor Cyan
-        Write-Host "  (僅下載最新版本，略過歷史紀錄)" -ForegroundColor DarkGray
-        Write-Host ""
+        # 使用 Git sparse-checkout 僅下載 openblock-link/ 目錄
+        Write-Host "  使用 Git 稀疏檢出 (sparse-checkout)，僅下載 Link 服務..." -ForegroundColor Cyan
         Set-Location $scriptDir
 
-        # 啟用 Windows 長路徑支援（避免 ESP32 Matter 標頭檔路徑超過 260 字元）
         & git config --global core.longpaths true
 
-        # 暫時允許 stderr 輸出（git 的進度走 stderr），直接輸出到控制台顯示即時進度
         $oldEAP = $ErrorActionPreference
         $ErrorActionPreference = "Continue"
-        & cmd /c "git clone --depth 1 --progress https://github.com/kevinkidtw/TubitBlockWeb.git 2>&1"
-        $ErrorActionPreference = $oldEAP
 
+        # 初始化空 repo，設定 sparse-checkout，然後 pull
+        & cmd /c "git clone --filter=blob:none --no-checkout --depth 1 --progress https://github.com/kevinkidtw/TubitBlockWeb.git 2>&1"
+        Set-Location (Join-Path $scriptDir "TubitBlockWeb")
+        & git sparse-checkout init --cone
+        & git sparse-checkout set openblock-link tubitblock-link
+        & cmd /c "git checkout 2>&1"
+
+        $ErrorActionPreference = $oldEAP
         Write-Host ""
+
     } else {
+        # 無 Git 時，下載整個 ZIP 再只保留 link 目錄
         Write-Host "  Git 不可用，改用壓縮包下載..." -ForegroundColor Yellow
         $zipPath = Join-Path $scriptDir "TubitBlockWeb.zip"
 
@@ -235,9 +241,9 @@ if (-not $linkDir) {
 
         Write-Host ""
         Write-Host "  正在解壓縮檔案..." -ForegroundColor Yellow
-        Write-Host "  此步驟正在處理大型檔案，畫面暫時停止是正常現象。" -ForegroundColor DarkGray
         Expand-Archive -Path $zipPath -DestinationPath $scriptDir -Force
         Remove-Item $zipPath -ErrorAction SilentlyContinue
+
         $extractedDir = Join-Path $scriptDir "TubitBlockWeb-main"
         $targetDir = Join-Path $scriptDir "TubitBlockWeb"
         if (Test-Path $extractedDir) {
@@ -245,11 +251,10 @@ if (-not $linkDir) {
         }
     }
 
-    $projectRoot = Join-Path $scriptDir "TubitBlockWeb"
-
-    # 嘗試兩種目錄名
+    # 尋找下載後的 link 目錄
+    $downloadedRoot = Join-Path $scriptDir "TubitBlockWeb"
     foreach ($dirName in $linkDirNames) {
-        $testLink = Join-Path $projectRoot $dirName
+        $testLink = Join-Path $downloadedRoot $dirName
         if (Test-Path (Join-Path $testLink "package.json")) {
             $linkDir = $testLink
             break
@@ -262,6 +267,10 @@ if (-not $linkDir) {
         Write-Host "  請手動前往 https://github.com/kevinkidtw/TubitBlockWeb 下載。" -ForegroundColor Red
         exit 1
     }
+
+    Write-Host "  正在安裝 npm 套件..." -ForegroundColor Yellow
+    Set-Location $linkDir
+    npm install
 }
 
 Write-Host "  [OK] 已找到專案目錄: $linkDir" -ForegroundColor Green
