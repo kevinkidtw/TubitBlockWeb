@@ -2,13 +2,22 @@
 # =====================================================================
 # TubitBlockWeb 一鍵啟動環境 (Mac/Linux)
 # 功能：自動安裝 Node.js、偵測 CPU 架構、下載對應的 ESP32 編譯器、
-#       啟動 HTTP 靜態伺服器與 tubitblock-link 連線服務。
+#       啟動 Link 硬體連線服務（編譯與燒錄）。
+#
+# 說明：網頁前端 (www/) 和擴展包 (external-resources/) 由 GitHub Pages 提供，
+#       本地端只需要 Link 服務 (openblock-link/) 進行編譯和燒錄。
 # =====================================================================
 
 set -e
 
+OS_NAME="$(uname -s)"
+ARCH="$(uname -m)"
+
 echo "======================================================="
 echo "TubitBlockWeb 一鍵啟動環境 (Mac/Linux)"
+echo "======================================================="
+echo "  作業系統: $OS_NAME"
+echo "  CPU 架構: $ARCH"
 echo "======================================================="
 echo "正在檢查系統環境..."
 
@@ -16,7 +25,7 @@ echo "正在檢查系統環境..."
 if ! command -v npm &> /dev/null; then
     echo ""
     echo "找不到 Node.js (npm)，準備進行自動安裝..."
-    if [ "$(uname)" == "Darwin" ]; then
+    if [ "$OS_NAME" == "Darwin" ]; then
         if command -v brew &> /dev/null; then
             echo "偵測到 Homebrew，正在安裝 Node.js..."
             brew install node
@@ -58,45 +67,72 @@ if ! command -v npm &> /dev/null; then
     exit 0
 fi
 
-# ---- 第二步：定位專案目錄 ----
+# ---- 第二步：尋找或下載 Link 服務（僅下載編譯服務，不含網頁前端）----
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+LINK_DIR=""
 
-if [ -d "$SCRIPT_DIR/tubitblock-link" ]; then
-    PROJECT_ROOT="$SCRIPT_DIR"
-elif [ -d "$SCRIPT_DIR/TubitBlockWeb/tubitblock-link" ]; then
-    PROJECT_ROOT="$SCRIPT_DIR/TubitBlockWeb"
-else
+# 搜尋可能的 link 目錄位置（支援新舊目錄名）
+for ROOT_DIR in "$SCRIPT_DIR" "$SCRIPT_DIR/TubitBlockWeb" "$SCRIPT_DIR/TubitBlockWeb-main"; do
+    for DIR_NAME in openblock-link tubitblock-link; do
+        if [ -f "$ROOT_DIR/$DIR_NAME/package.json" ]; then
+            LINK_DIR="$ROOT_DIR/$DIR_NAME"
+            break 2
+        fi
+    done
+done
+
+if [ -z "$LINK_DIR" ]; then
     echo ""
-    echo "找不到 tubitblock-link 目錄，準備自動下載專案..."
+    echo "找不到 Link 服務，正在從 GitHub 下載（僅下載編譯服務）..."
+    echo "  (不會下載網頁前端和擴展包，節省大量下載時間)"
+    echo ""
+
     if command -v git &> /dev/null; then
-        echo "系統具備 Git，開始從 GitHub 複製專案..."
+        echo "使用 Git 稀疏檢出 (sparse-checkout)，僅下載 Link 服務..."
         cd "$SCRIPT_DIR"
-        git clone --depth 1 https://github.com/kevinkidtw/TubitBlockWeb.git
+
+        # 初始化空 repo，設定 sparse-checkout，然後 checkout
+        git clone --filter=blob:none --no-checkout --depth 1 --progress \
+            https://github.com/kevinkidtw/TubitBlockWeb.git
+
+        cd TubitBlockWeb
+        git sparse-checkout init --cone
+        git sparse-checkout set openblock-link tubitblock-link
+        git checkout
     else
         echo "系統找不到 Git，改用 curl 下載壓縮包..."
         cd "$SCRIPT_DIR"
-        curl -L -o TubitBlockWeb.zip https://github.com/kevinkidtw/TubitBlockWeb/archive/refs/heads/main.zip
+        curl -L --progress-bar -o TubitBlockWeb.zip \
+            https://github.com/kevinkidtw/TubitBlockWeb/archive/refs/heads/main.zip
         unzip -q TubitBlockWeb.zip
         rm TubitBlockWeb.zip
         mv TubitBlockWeb-main TubitBlockWeb
     fi
-    PROJECT_ROOT="$SCRIPT_DIR/TubitBlockWeb"
+
+    # 尋找下載後的 link 目錄
+    for DIR_NAME in openblock-link tubitblock-link; do
+        if [ -f "$SCRIPT_DIR/TubitBlockWeb/$DIR_NAME/package.json" ]; then
+            LINK_DIR="$SCRIPT_DIR/TubitBlockWeb/$DIR_NAME"
+            break
+        fi
+    done
+
+    if [ -z "$LINK_DIR" ]; then
+        echo "[錯誤] 下載失敗或專案結構異常。"
+        echo "請手動前往 https://github.com/kevinkidtw/TubitBlockWeb 下載。"
+        exit 1
+    fi
 fi
 
-LINK_DIR="$PROJECT_ROOT/tubitblock-link"
 TOOLS_DIR="$LINK_DIR/tools/Arduino/packages/esp32/tools"
+
+echo "[OK] 已找到 Link 服務: $LINK_DIR"
 
 # ---- 第三步：偵測 CPU 架構並下載對應的 ESP32 編譯器 ----
 echo ""
 echo "======================================================="
 echo "正在檢查 ESP32 編譯器工具鏈..."
 echo "======================================================="
-
-OS_NAME="$(uname -s)"
-ARCH="$(uname -m)"
-
-echo "  作業系統: $OS_NAME"
-echo "  CPU 架構: $ARCH"
 
 # 判斷需要下載的平台標籤
 if [ "$OS_NAME" == "Darwin" ]; then
@@ -133,12 +169,11 @@ fi
 echo "  對應平台: $PLATFORM_LABEL"
 
 # ---- 下載函數 ----
-# 用法: download_tool "工具名稱" "下載URL" "目標目錄" "解壓後的頂層資料夾名"
 download_tool() {
     local TOOL_NAME="$1"
     local URL="$2"
     local DEST_DIR="$3"
-    local STRIP_PREFIX="$4"  # tar 解壓時要去掉的頂層目錄名
+    local STRIP_PREFIX="$4"
 
     if [ -d "$DEST_DIR" ] && [ "$(ls -A "$DEST_DIR" 2>/dev/null)" ]; then
         echo "  [✓] $TOOL_NAME 已存在，跳過下載"
@@ -153,7 +188,6 @@ download_tool() {
     mkdir -p "$DEST_DIR"
 
     if [ -n "$STRIP_PREFIX" ]; then
-        # 解壓並去掉頂層目錄，直接放到 DEST_DIR
         tar xzf "$TMP_FILE" -C "$DEST_DIR" --strip-components=1
     else
         tar xzf "$TMP_FILE" -C "$DEST_DIR"
@@ -199,38 +233,21 @@ download_tool "riscv32-esp-elf-gdb (RISC-V GDB)" \
 echo ""
 echo "  ESP32 編譯器工具鏈就緒 ✓"
 
-# ---- 第四步：安裝 npm 依賴 ----
+# ---- 第四步：安裝 npm 依賴並啟動 Link 服務 ----
 echo ""
 echo "正在檢查並安裝專案依賴套件 (npm install)..."
 cd "$LINK_DIR"
 npm install
 
-# ---- 第五步：啟動服務 ----
 echo ""
 echo "======================================================="
-echo "TubitBlockWeb - 服務啟動中..."
+echo "TubitBlockWeb 硬體連線助手啟動中！"
 echo "請勿關閉此終端機視窗，把它最小化即可！"
+echo ""
+echo "本服務負責編譯與燒錄 (port 20111)，"
+echo "網頁介面請使用老師提供的 GitHub Pages 網址。"
 echo "======================================================="
 echo ""
 
-# 先關閉之前可能殘留的 HTTP 伺服器
-lsof -ti:8080 | xargs kill -9 2>/dev/null || true
-
-# 啟動 HTTP 靜態檔案伺服器 (port 8080)
-echo "正在啟動 HTTP 靜態伺服器 (port 8080)..."
-cd "$PROJECT_ROOT"
-nohup python3 -m http.server 8080 -d "$PROJECT_ROOT" > "$PROJECT_ROOT/http_server.log" 2>&1 &
-HTTP_PID=$!
-echo "HTTP 伺服器已啟動 (PID: $HTTP_PID)"
-echo ""
-echo "======================================================="
-echo "請用瀏覽器開啟: http://localhost:8080/www/index.html"
-echo "======================================================="
-echo ""
-
-# 開始執行背景連線服務 (tubitblock-link, port 20111)
-cd "$LINK_DIR"
+# 啟動 Link 連線服務 (port 20111)
 npm start
-
-# 當 npm start 結束時，也關閉 HTTP 伺服器
-kill $HTTP_PID 2>/dev/null
