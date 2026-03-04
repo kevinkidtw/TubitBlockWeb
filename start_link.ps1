@@ -332,14 +332,6 @@ $toolList = @(
         Url         = "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v14.2_20240403/riscv32-esp-elf-gdb-14.2_20240403-x86_64-w64-mingw32.zip"
         DestDir     = "riscv32-esp-elf-gdb\14.2_20240403"
         StripPrefix = "riscv32-esp-elf-gdb"
-    },
-    @{
-        Name        = "arduino-cli (編譯核心工具, ~12MB)"
-        Url         = "https://github.com/arduino/arduino-cli/releases/download/v0.35.3/arduino-cli_0.35.3_Windows_64bit.zip"
-        # 覆寫根目錄以放置在 tools\Arduino 下
-        DestRoot    = "$linkDir\tools\Arduino"
-        DestDir     = ""
-        StripPrefix = "" # ZIP 內直接有 arduino-cli.exe
     }
 )
 
@@ -347,16 +339,10 @@ function Download-EspTool {
     param(
         [string]$Name,
         [string]$Url,
-        [string]$DestDir,
-        [string]$StripPrefix,
-        [string]$DestRoot
+        [string]$DestDir
     )
 
-    if ([string]::IsNullOrEmpty($DestRoot)) {
-        $DestRoot = $toolsDir
-    }
-    
-    $fullDest = Join-Path $DestRoot $DestDir
+    $fullDest = Join-Path $toolsDir $DestDir
 
     # 檢查是否已存在
     if ((Test-Path $fullDest) -and (Get-ChildItem $fullDest -ErrorAction SilentlyContinue | Measure-Object).Count -gt 0) {
@@ -380,18 +366,13 @@ function Download-EspTool {
     # 建立目標目錄
     New-Item -ItemType Directory -Path $fullDest -Force | Out-Null
 
-    # 移動檔案（去掉頂層資料夾）
-    if (-not [string]::IsNullOrEmpty($StripPrefix)) {
-        $innerDir = Join-Path $extractTemp $StripPrefix
-        if (Test-Path $innerDir) {
-            Get-ChildItem -Path $innerDir | Move-Item -Destination $fullDest -Force
-        }
-        else {
-            Get-ChildItem -Path $extractTemp | Move-Item -Destination $fullDest -Force
-        }
+    # 移動檔案（動態去掉頂層資料夾，類似 tar --strip-components=1）
+    $rootItems = Get-ChildItem -Path $extractTemp
+    if ($rootItems.Count -eq 1 -and $rootItems[0].PSIsContainer) {
+        Get-ChildItem -Path $rootItems[0].FullName | Move-Item -Destination $fullDest -Force
     }
     else {
-        Get-ChildItem -Path $extractTemp | Move-Item -Destination $fullDest -Force
+        $rootItems | Move-Item -Destination $fullDest -Force
     }
 
     # 清理
@@ -406,8 +387,8 @@ Write-Host ""
 $toolIndex = 0
 foreach ($tool in $toolList) {
     $toolIndex++
-    Write-Host "  ($toolIndex/7)" -NoNewline
-    Download-EspTool -Name $tool.Name -Url $tool.Url -DestDir $tool.DestDir -StripPrefix $tool.StripPrefix -DestRoot $tool.DestRoot
+    Write-Host "  ($toolIndex/6)" -NoNewline
+    Download-EspTool -Name $tool.Name -Url $tool.Url -DestDir $tool.DestDir
 }
 
 Write-Host ""

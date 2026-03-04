@@ -144,7 +144,6 @@ if [ "$OS_NAME" == "Darwin" ]; then
         OPENOCD_URL="https://github.com/espressif/openocd-esp32/releases/download/v0.12.0-esp32-20241016/openocd-esp32-macos-arm64-0.12.0-esp32-20241016.tar.gz"
         GDB_XTENSA_URL="https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v14.2_20240403/xtensa-esp-elf-gdb-14.2_20240403-aarch64-apple-darwin21.1.tar.gz"
         GDB_RV32_URL="https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v14.2_20240403/riscv32-esp-elf-gdb-14.2_20240403-aarch64-apple-darwin21.1.tar.gz"
-        ARDUINO_CLI_URL="https://github.com/arduino/arduino-cli/releases/download/v0.35.3/arduino-cli_0.35.3_macOS_ARM64.tar.gz"
     else
         PLATFORM_LABEL="macOS Intel (x86_64)"
         ESP_X32_URL="https://github.com/espressif/crosstool-NG/releases/download/esp-13.2.0_20240530/xtensa-esp-elf-13.2.0_20240530-x86_64-apple-darwin.tar.gz"
@@ -153,7 +152,6 @@ if [ "$OS_NAME" == "Darwin" ]; then
         OPENOCD_URL="https://github.com/espressif/openocd-esp32/releases/download/v0.12.0-esp32-20241016/openocd-esp32-macos-amd64-0.12.0-esp32-20241016.tar.gz"
         GDB_XTENSA_URL="https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v14.2_20240403/xtensa-esp-elf-gdb-14.2_20240403-x86_64-apple-darwin14.tar.gz"
         GDB_RV32_URL="https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v14.2_20240403/riscv32-esp-elf-gdb-14.2_20240403-x86_64-apple-darwin14.tar.gz"
-        ARDUINO_CLI_URL="https://github.com/arduino/arduino-cli/releases/download/v0.35.3/arduino-cli_0.35.3_macOS_64bit.tar.gz"
     fi
 elif [ "$OS_NAME" == "Linux" ]; then
     PLATFORM_LABEL="Linux x86_64"
@@ -163,7 +161,6 @@ elif [ "$OS_NAME" == "Linux" ]; then
     OPENOCD_URL="https://github.com/espressif/openocd-esp32/releases/download/v0.12.0-esp32-20241016/openocd-esp32-linux-amd64-0.12.0-esp32-20241016.tar.gz"
     GDB_XTENSA_URL="https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v14.2_20240403/xtensa-esp-elf-gdb-14.2_20240403-x86_64-linux-gnu.tar.gz"
     GDB_RV32_URL="https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v14.2_20240403/riscv32-esp-elf-gdb-14.2_20240403-x86_64-linux-gnu.tar.gz"
-    ARDUINO_CLI_URL="https://github.com/arduino/arduino-cli/releases/download/v0.35.3/arduino-cli_0.35.3_Linux_64bit.tar.gz"
 else
     echo "[錯誤] 不支援的作業系統: $OS_NAME"
     exit 1
@@ -177,15 +174,8 @@ download_tool() {
     local URL="$2"
     local DEST_DIR="$3"
     local STRIP_PREFIX="$4"
-    local DEST_ROOT="$5"
 
-    if [ -z "$DEST_ROOT" ]; then
-        DEST_ROOT="$TOOLS_DIR"
-    fi
-    
-    local FULL_DEST="$DEST_ROOT/$DEST_DIR"
-
-    if [ -d "$FULL_DEST" ] && [ "$(ls -A "$FULL_DEST" 2>/dev/null)" ]; then
+    if [ -d "$DEST_DIR" ] && [ "$(ls -A "$DEST_DIR" 2>/dev/null)" ]; then
         echo "  [✓] $TOOL_NAME 已存在，跳過下載"
         return 0
     fi
@@ -195,18 +185,12 @@ download_tool() {
     curl -L --progress-bar -o "$TMP_FILE" "$URL"
 
     echo "  [⚙] 正在解壓 $TOOL_NAME ..."
-    mkdir -p "$FULL_DEST"
+    mkdir -p "$DEST_DIR"
 
     if [ -n "$STRIP_PREFIX" ]; then
-        tar xzf "$TMP_FILE" -C "$FULL_DEST" --strip-components=1
+        tar xzf "$TMP_FILE" -C "$DEST_DIR" --strip-components=1
     else
-        # 處理未加壓的執行檔 (如 arduino-cli ARM64 macOS) 或一般 tar.gz
-        if [[ "$TMP_FILE" == *.tar.gz ]]; then
-            tar xzf "$TMP_FILE" -C "$FULL_DEST"
-        else
-            cp "$TMP_FILE" "$FULL_DEST/"
-            # 若為 tar.gz 外的其他格式需要特別處理，這裡假定 arduino-cli 已透過 tar.gz 封裝 (參見上方 URL 定義)
-        fi
+        tar xzf "$TMP_FILE" -C "$DEST_DIR"
     fi
 
     rm -f "$TMP_FILE"
@@ -215,42 +199,36 @@ download_tool() {
 
 echo ""
 
-# 下載 OS-specific 工具
+# 下載 6 個 OS-specific 工具
 download_tool "esp-x32 (Xtensa 編譯器)" \
     "$ESP_X32_URL" \
-    "esp-x32/2405" \
+    "$TOOLS_DIR/esp-x32/2405" \
     "xtensa-esp-elf"
 
 download_tool "esp-rv32 (RISC-V 編譯器)" \
     "$ESP_RV32_URL" \
-    "esp-rv32/2405" \
+    "$TOOLS_DIR/esp-rv32/2405" \
     "riscv32-esp-elf"
 
 download_tool "esptool_py (燒錄工具)" \
     "$ESPTOOL_URL" \
-    "esptool_py/4.9.dev3" \
+    "$TOOLS_DIR/esptool_py/4.9.dev3" \
     "esptool"
 
 download_tool "openocd-esp32 (除錯工具)" \
     "$OPENOCD_URL" \
-    "openocd-esp32/v0.12.0-esp32-20241016" \
+    "$TOOLS_DIR/openocd-esp32/v0.12.0-esp32-20241016" \
     "openocd-esp32"
 
 download_tool "xtensa-esp-elf-gdb (Xtensa GDB)" \
     "$GDB_XTENSA_URL" \
-    "xtensa-esp-elf-gdb/14.2_20240403" \
+    "$TOOLS_DIR/xtensa-esp-elf-gdb/14.2_20240403" \
     "xtensa-esp-elf-gdb"
 
 download_tool "riscv32-esp-elf-gdb (RISC-V GDB)" \
     "$GDB_RV32_URL" \
-    "riscv32-esp-elf-gdb/14.2_20240403" \
+    "$TOOLS_DIR/riscv32-esp-elf-gdb/14.2_20240403" \
     "riscv32-esp-elf-gdb"
-
-download_tool "arduino-cli (編譯核心工具)" \
-    "$ARDUINO_CLI_URL" \
-    "" \
-    "" \
-    "$LINK_DIR/tools/Arduino"
 
 echo ""
 echo "  ESP32 編譯器工具鏈就緒 ✓"

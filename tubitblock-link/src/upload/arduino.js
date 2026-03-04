@@ -1,5 +1,5 @@
 const fs = require('fs');
-const {spawn, spawnSync} = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 const path = require('path');
 const ansi = require('ansi-string');
 const yaml = require('js-yaml');
@@ -14,7 +14,7 @@ const ARDUINO_CLI_STDERR_RED_IGNORE = /Executable segment sizes/g;
 const ABORT_STATE_CHECK_INTERVAL = 100;
 
 class Arduino {
-    constructor (peripheralPath, config, userDataPath, toolsPath, sendstd) {
+    constructor(peripheralPath, config, userDataPath, toolsPath, sendstd) {
         this._peripheralPath = peripheralPath;
         this._config = config;
         this._userDataPath = userDataPath;
@@ -45,7 +45,7 @@ class Arduino {
         this.initArduinoCli();
     }
 
-    initArduinoCli () {
+    initArduinoCli() {
         // try to init the arduino cli config.
         spawnSync(this._arduinoCliPath, ['config', 'init', '--dest-file', this._configFilePath]);
 
@@ -74,14 +74,14 @@ class Arduino {
 
     }
 
-    abortUpload () {
+    abortUpload() {
         this._abort = true;
     }
 
-    build (code) {
+    build(code) {
         return new Promise((resolve, reject) => {
             if (!fs.existsSync(this._codeFolderPath)) {
-                fs.mkdirSync(this._codeFolderPath, {recursive: true});
+                fs.mkdirSync(this._codeFolderPath, { recursive: true });
             }
 
             try {
@@ -144,31 +144,31 @@ class Arduino {
                 clearInterval(listenAbortSignal);
                 this._sendstd(`${ansi.clear}\r\n`); // End ansi color setting
                 switch (outCode) {
-                case null:
-                    // process be killed, do nothing.
-                    return resolve('Aborted');
-                case 0:
-                    return resolve('Success');
-                case 1:
-                    return reject(new Error('Build failed'));
-                case 2:
-                    return reject(new Error('Sketch not found'));
-                case 3:
-                    return reject(new Error('Invalid (argument for) commandline optiond'));
-                case 4:
-                    return reject(new Error('Preference passed to --get-pref does not exist'));
-                default:
-                    return reject(new Error('Unknown error'));
+                    case null:
+                        // process be killed, do nothing.
+                        return resolve('Aborted');
+                    case 0:
+                        return resolve('Success');
+                    case 1:
+                        return reject(new Error('Build failed'));
+                    case 2:
+                        return reject(new Error('Sketch not found'));
+                    case 3:
+                        return reject(new Error('Invalid (argument for) commandline optiond'));
+                    case 4:
+                        return reject(new Error('Preference passed to --get-pref does not exist'));
+                    default:
+                        return reject(new Error('Unknown error'));
                 }
             });
         });
     }
 
-    _insertStr (soure, start, newStr) {
+    _insertStr(soure, start, newStr) {
         return soure.slice(0, start) + newStr + soure.slice(start);
     }
 
-    async flash (firmwarePath = null) {
+    async flash(firmwarePath = null) {
         const args = [
             'upload',
             '--fqbn', this._config.fqbn,
@@ -233,27 +233,27 @@ class Arduino {
                 clearInterval(listenAbortSignal);
                 const wait = ms => new Promise(relv => setTimeout(relv, ms));
                 switch (code) {
-                case 0:
-                    if (this._config.postUploadDelay) {
-                        // Waiting for usb rerecognize.
-                        wait(this._config.postUploadDelay).then(() => resolve('Success'));
-                    } else {
-                        return resolve('Success');
-                    }
-                    break;
-                case 1:
-                    if (this._abort) {
-                        // Wait for 100ms before returning to prevent the serial port from being released.
-                        wait(100).then(() => resolve('Aborted'));
-                    } else {
-                        return reject(new Error('avrdude failed to flash'));
-                    }
+                    case 0:
+                        if (this._config.postUploadDelay) {
+                            // Waiting for usb rerecognize.
+                            wait(this._config.postUploadDelay).then(() => resolve('Success'));
+                        } else {
+                            return resolve('Success');
+                        }
+                        break;
+                    case 1:
+                        if (this._abort) {
+                            // Wait for 100ms before returning to prevent the serial port from being released.
+                            wait(100).then(() => resolve('Aborted'));
+                        } else {
+                            return reject(new Error('avrdude failed to flash'));
+                        }
                 }
             });
         });
     }
 
-    flashRealtimeFirmware () {
+    flashRealtimeFirmware() {
         const firmwarePath = path.join(this._firmwareDir, this._config.firmware);
         return this.flash(firmwarePath);
     }
