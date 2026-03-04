@@ -715,6 +715,56 @@
             case 'string_decoder':
                 console.log('[Web] Returning empty stub for Node.js core module:', moduleName);
                 return {};
+            case 'openblock-link':
+            case 'tubitblock-link':
+                // The compiled GUI does require('openblock-link') to get the Link class
+                // that creates a WebSocket connection to the local link server.
+                // We provide a browser-compatible shim here.
+                console.log('[Web] Providing openblock-link shim for:', moduleName);
+                return (function () {
+                    var Emitter = window.require('events');
+
+                    function LinkShim() {
+                        Emitter.call(this);
+                        this._ws = null;
+                        this._port = 20111;
+                        this._host = '127.0.0.1';
+                    }
+                    LinkShim.prototype = Object.create(Emitter.prototype);
+                    LinkShim.prototype.constructor = LinkShim;
+
+                    LinkShim.prototype.listen = function (port, host) {
+                        // In web mode, we don't start the server — we connect TO it
+                        this._port = port || this._port;
+                        this._host = host || this._host;
+                        console.log('[Web] Link shim: server should be at ws://' + this._host + ':' + this._port);
+                        var self = this;
+                        setTimeout(function () { self.emit('ready'); }, 100);
+                    };
+
+                    return LinkShim;
+                })();
+            case 'openblock-resource':
+            case 'tubitblock-resource':
+                // The compiled GUI does require('openblock-resource') for the resource server.
+                // In web mode, resources are served by the static HTTP server, so this is a no-op.
+                console.log('[Web] Providing openblock-resource shim (no-op) for:', moduleName);
+                return (function () {
+                    var Emitter = window.require('events');
+
+                    function ResourceShim() {
+                        Emitter.call(this);
+                    }
+                    ResourceShim.prototype = Object.create(Emitter.prototype);
+                    ResourceShim.prototype.constructor = ResourceShim;
+
+                    ResourceShim.prototype.listen = function () {
+                        var self = this;
+                        setTimeout(function () { self.emit('ready'); }, 100);
+                    };
+
+                    return ResourceShim;
+                })();
             default:
                 if (_originalRequire) {
                     try { return _originalRequire(moduleName); }
@@ -1062,16 +1112,33 @@
         }, 30000);
     })();
 
-    // ---- Runtime Brand Patcher: Replace "OpenBlock" display text ----
-    // The compiled webpack bundles contain hardcoded "OpenBlock" strings.
-    // This section uses MutationObserver to replace all visible "OpenBlock"
-    // text with "TUbitBlock" after React renders the DOM.
+    // ---- Runtime Brand Patcher: Replace display text, redirect links, hide elements ----
+    // The compiled webpack bundles contain hardcoded strings and links.
+    // This section uses MutationObserver to patch them after React renders the DOM.
     (function () {
+        // ---- 文字替換規則 (較長/精確的放前面) ----
         var BRAND_MAP = [
             [/OpenBlockDesktop/g, 'TUbitBlockDesktop'],
             [/OpenBlock\.cc/g, 'TUbitBlock'],
-            [/OpenBlock/g, 'TUbitBlock']
+            [/OpenBlock專案/g, 'TUbitBlock 專案'],
+            [/OpenBlock/g, 'TUbitBlock'],
+            [/上傳韌體/g, '燒錄程式'],
+            [/編程模式/g, '程式設計模式'],
+            [/教程/g, '課程'],
+            [/維基/g, '說明']
         ];
+
+        // ---- 超連結重導向規則 ----
+        var LINK_REDIRECTS = {
+            'https://wiki.openblock.cc': 'https://trgreat.com/tu-wiki/',
+            'https://wiki.openblock.cc/': 'https://trgreat.com/tu-wiki/',
+            'http://wiki.openblock.cc': 'https://trgreat.com/tu-wiki/',
+            'http://wiki.openblock.cc/': 'https://trgreat.com/tu-wiki/'
+        };
+        var TUTORIAL_URL = 'https://trgreat.com/tubit-%e5%9f%ba%e7%a4%8e%e5%85%a5%e9%96%80%e8%aa%b2%e7%a8%8b/';
+
+        // ---- 要隱藏的選單項目 (依文字內容比對) ----
+        var HIDDEN_ITEMS = ['關於', '許可證', '數據政策', 'About', 'License', 'Privacy Policy'];
 
         function patchText(text) {
             var result = text;
@@ -1092,7 +1159,41 @@
             }
         }
 
-        // Also patch the document title
+        // 重導向連結
+        function patchLinks(root) {
+            var links = root.querySelectorAll ? root.querySelectorAll('a[href]') : [];
+            for (var i = 0; i < links.length; i++) {
+                var href = links[i].getAttribute('href');
+                // 維基連結重導向
+                if (href && LINK_REDIRECTS[href]) {
+                    links[i].setAttribute('href', LINK_REDIRECTS[href]);
+                    console.log('[Web] Link redirect:', href, '→', LINK_REDIRECTS[href]);
+                }
+                // 教程/課程連結重導向 (比對 tutorials 或 openblock 教程相關 URL)
+                if (href && (href.indexOf('tutorials') >= 0 || href.indexOf('learn') >= 0)) {
+                    links[i].setAttribute('href', TUTORIAL_URL);
+                    console.log('[Web] Tutorial link redirect:', href, '→', TUTORIAL_URL);
+                }
+            }
+        }
+
+        // 隱藏不需要的選單項目
+        function hideUnwantedItems(root) {
+            // 搜尋所有可點擊元素 (li, div, a, button, span)
+            var candidates = root.querySelectorAll ? root.querySelectorAll('li, div[class*="menu"], a, button, span[role="menuitem"]') : [];
+            for (var i = 0; i < candidates.length; i++) {
+                var el = candidates[i];
+                var text = (el.textContent || '').trim();
+                for (var j = 0; j < HIDDEN_ITEMS.length; j++) {
+                    if (text === HIDDEN_ITEMS[j]) {
+                        el.style.display = 'none';
+                        console.log('[Web] Hidden menu item:', text);
+                    }
+                }
+            }
+        }
+
+        // Patch the document title
         function patchTitle() {
             if (document.title && document.title.indexOf('OpenBlock') >= 0) {
                 document.title = patchText(document.title);
@@ -1102,6 +1203,8 @@
         // Run when DOM is ready
         function startPatching() {
             patchTextNodes(document.body);
+            patchLinks(document.body);
+            hideUnwantedItems(document.body);
             patchTitle();
 
             // Watch for React re-renders
@@ -1116,6 +1219,8 @@
                                 if (p !== node.nodeValue) node.nodeValue = p;
                             } else if (node.nodeType === Node.ELEMENT_NODE) {
                                 patchTextNodes(node);
+                                patchLinks(node);
+                                hideUnwantedItems(node);
                             }
                         }
                     } else if (m.type === 'characterData') {

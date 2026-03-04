@@ -1,4 +1,4 @@
-const {SerialPort} = require('serialport');
+const { SerialPort } = require('serialport');
 const ansi = require('ansi-string');
 
 const Session = require('./session');
@@ -9,7 +9,7 @@ const usbId = require('../lib/usb-id');
 const PERIPHERAL_UNPLUG_CHECK_INTERVAL = 100;
 
 class SerialportSession extends Session {
-    constructor (socket, userDataPath, toolsPath) {
+    constructor(socket, userDataPath, toolsPath) {
         super(socket);
 
         this.userDataPath = userDataPath;
@@ -27,58 +27,58 @@ class SerialportSession extends Session {
         this.tool = null;
     }
 
-    async didReceiveCall (method, params, completion) {
+    async didReceiveCall(method, params, completion) {
         switch (method) {
-        case 'discover':
-            this.discover(params);
-            completion(null, null);
-            break;
-        case 'connect':
-            await this.connect(params);
-            completion(null, null);
-            break;
-        case 'disconnect':
-            await this.disconnect();
-            completion(null, null);
-            break;
-        case 'updateBaudrate':
-            completion(await this.updateBaudrate(params), null);
-            break;
-        case 'write':
-            completion(await this.write(params), null);
-            break;
-        case 'read':
-            await this.read(params);
-            completion(null, null);
-            break;
-        case 'upload':
-            completion(await this.upload(params), null);
-            break;
-        case 'uploadFirmware':
-            completion(await this.uploadFirmware(params), null);
-            break;
-        case 'abortUpload':
-            completion(await this.abortUpload(), null);
-            break;
-        case 'getServices':
-            completion((this.services || []).map(service => service.uuid), null);
-            break;
-        case 'pingMe':
-            completion('willPing', null);
-            this.sendRemoteRequest('ping', null, result => {
-                console.log(`Got result from ping: ${result}`);
-            });
-            break;
-        default:
-            throw new Error(`Method not found`);
+            case 'discover':
+                this.discover(params);
+                completion(null, null);
+                break;
+            case 'connect':
+                await this.connect(params);
+                completion(null, null);
+                break;
+            case 'disconnect':
+                await this.disconnect();
+                completion(null, null);
+                break;
+            case 'updateBaudrate':
+                completion(await this.updateBaudrate(params), null);
+                break;
+            case 'write':
+                completion(await this.write(params), null);
+                break;
+            case 'read':
+                await this.read(params);
+                completion(null, null);
+                break;
+            case 'upload':
+                completion(await this.upload(params), null);
+                break;
+            case 'uploadFirmware':
+                completion(await this.uploadFirmware(params), null);
+                break;
+            case 'abortUpload':
+                completion(await this.abortUpload(), null);
+                break;
+            case 'getServices':
+                completion((this.services || []).map(service => service.uuid), null);
+                break;
+            case 'pingMe':
+                completion('willPing', null);
+                this.sendRemoteRequest('ping', null, result => {
+                    console.log(`Got result from ping: ${result}`);
+                });
+                break;
+            default:
+                throw new Error(`Method not found`);
         }
     }
 
-    discover (params) {
+    discover(params) {
         if (this.services) {
             throw new Error('cannot discover when connected');
         }
-        const {filters} = params;
+        const { filters } = params;
         if (!Array.isArray(filters.pnpid) || filters.pnpid.length < 1) {
             throw new Error('discovery request must include filters');
         }
@@ -91,22 +91,31 @@ class SerialportSession extends Session {
         }, 100);
     }
 
-    onAdvertisementReceived (peripheral, filters) {
+    onAdvertisementReceived(peripheral, filters) {
         if (peripheral) {
             peripheral.forEach(device => {
-                const vendorId = String(device.vendorId).toUpperCase();
-                const productId = String(device.productId).toUpperCase();
+                // Safely handle potentially undefined vendorId/productId
+                const vid = device.vendorId || '';
+                const pid = device.productId || '';
+
+                const vendorId = String(vid).toUpperCase();
+                const productId = String(pid).toUpperCase();
                 const pnpid = `USB\\VID_${vendorId}&PID_${productId}`;
 
-                const name = usbId[pnpid] ? usbId[pnpid] : 'Unknown device';
+                let name = usbId[pnpid] ? usbId[pnpid] : 'Unknown device';
+                if (!name || name === 'Unknown device') {
+                    // Try to guess by typical CH340 / CP2102 names
+                    if (device.path.includes('usbserial') || device.path.includes('wchusbserial') || device.path.includes('SLAB')) {
+                        name = 'USB Serial Device';
+                    }
+                }
 
-                if (filters.pnpid.includes('*')) {
-                    this.reportedPeripherals[device.path] = device;
-                    this.sendRemoteRequest('didDiscoverPeripheral', {
-                        peripheralId: device.path,
-                        name: `${name} (${device.path})`
-                    });
-                } else if (filters.pnpid.includes(pnpid)) {
+                // Check if the device matches the requested filters OR is a recognizable macOS USB serial port
+                const isMatch = filters.pnpid.includes('*') ||
+                    filters.pnpid.includes(pnpid) ||
+                    (device.path.includes('usb') && (vid === '' || pid === ''));
+
+                if (isMatch) {
                     this.reportedPeripherals[device.path] = device;
                     this.sendRemoteRequest('didDiscoverPeripheral', {
                         peripheralId: device.path,
@@ -117,12 +126,12 @@ class SerialportSession extends Session {
         }
     }
 
-    connect (params, isConnectAfterUpload = false) {
+    connect(params, isConnectAfterUpload = false) {
         return new Promise((resolve, reject) => {
             if (this.peripheral && this.peripheral.isOpen === true) {
                 return reject(new Error('already connected to peripheral'));
             }
-            const {peripheralId, peripheralConfig} = params;
+            const { peripheralId, peripheralConfig } = params;
 
             const peripheral = this.reportedPeripherals[peripheralId];
             if (!peripheral) {
@@ -152,15 +161,15 @@ class SerialportSession extends Session {
                             this.sendRemoteRequest('peripheralUnplug', null);
                         }
                         if (openErr.message.includes('Access denied')) {
-                            this.sendRemoteRequest('connectError', {message: 'Access denied'});
+                            this.sendRemoteRequest('connectError', { message: 'Access denied' });
                         }
                         if (openErr.message.includes('Open (SetCommState): Unknown error code 31')) {
-                            this.sendRemoteRequest('connectError', {message: 'Unknown error code 31'});
+                            this.sendRemoteRequest('connectError', { message: 'Unknown error code 31' });
                         }
                         return reject(new Error(openErr));
                     }
 
-                    port.set({rts: rts, dtr: dtr}, setErr => {
+                    port.set({ rts: rts, dtr: dtr }, setErr => {
                         if (setErr) {
                             if (isConnectAfterUpload === true) {
                                 this.sendRemoteRequest('peripheralUnplug', null);
@@ -201,7 +210,7 @@ class SerialportSession extends Session {
         });
     }
 
-    onMessageCallback (rev) {
+    onMessageCallback(rev) {
         const params = {
             encoding: 'base64',
             message: rev.toString('base64')
@@ -211,7 +220,7 @@ class SerialportSession extends Session {
         }
     }
 
-    updateBaudrate (params) {
+    updateBaudrate(params) {
         return new Promise((resolve, reject) => {
             if (this.isInDisconnect) {
                 return resolve();
@@ -229,7 +238,7 @@ class SerialportSession extends Session {
 
                 // After update baudrate, the rts and dtr will be automatically modified,
                 // we have to set them again.
-                this.peripheral.set({rts: rts, dtr: dtr}, setErr => {
+                this.peripheral.set({ rts: rts, dtr: dtr }, setErr => {
                     if (setErr) {
                         this.sendRemoteRequest('peripheralUnplug', null);
                         return reject(new Error(setErr));
@@ -241,9 +250,9 @@ class SerialportSession extends Session {
         });
     }
 
-    write (params) {
+    write(params) {
         return new Promise((resolve, reject) => {
-            const {message, encoding} = params;
+            const { message, encoding } = params;
             const buffer = new Buffer.from(message, encoding);
 
             try {
@@ -262,11 +271,11 @@ class SerialportSession extends Session {
         });
     }
 
-    read () {
+    read() {
         this.isRead = true;
     }
 
-    disconnect () {
+    disconnect() {
         this.isInDisconnect = true;
         return new Promise((resolve, reject) => {
             if (this.peripheral && this.peripheral.isOpen === true) {
@@ -298,101 +307,101 @@ class SerialportSession extends Session {
         });
     }
 
-    async upload (params) {
-        const {message, config, encoding} = params;
+    async upload(params) {
+        const { message, config, encoding } = params;
         const code = new Buffer.from(message, encoding).toString();
 
-        const {baudRate} = this.peripheralParams.peripheralConfig.config;
+        const { baudRate } = this.peripheralParams.peripheralConfig.config;
 
         switch (config.type) {
-        case 'arduino':
-            this.tool = new Arduino(this.peripheral.path, config, this.userDataPath,
-                this.toolsPath, this.sendstd.bind(this), this.sendRemoteRequest.bind(this));
+            case 'arduino':
+                this.tool = new Arduino(this.peripheral.path, config, this.userDataPath,
+                    this.toolsPath, this.sendstd.bind(this), this.sendRemoteRequest.bind(this));
 
-            try {
-                this.sendRemoteRequest('setUploadAbortEnabled', true);
-                const exitCode = await this.tool.build(code);
-                if (exitCode === 'Success') {
-                    try {
-                        this.sendstd(`${ansi.clear}Disconnect serial port\n`);
-                        await this.disconnect();
-                        this.sendstd(`${ansi.clear}Disconnected successfully, flash program starting...\n`);
-                        const flashExitCode = await this.tool.flash();
-                        await this.connect(this.peripheralParams, true);
-                        this.sendRemoteRequest('uploadSuccess', {aborted: flashExitCode === 'Aborted'});
-                    } catch (err) {
-                        this.sendRemoteRequest('uploadError', {
-                            message: ansi.red + err.message
-                        });
-                        // if error in flash step. It is considered that the device has been removed.
-                        this.sendRemoteRequest('peripheralUnplug', null);
+                try {
+                    this.sendRemoteRequest('setUploadAbortEnabled', true);
+                    const exitCode = await this.tool.build(code);
+                    if (exitCode === 'Success') {
+                        try {
+                            this.sendstd(`${ansi.clear}Disconnect serial port\n`);
+                            await this.disconnect();
+                            this.sendstd(`${ansi.clear}Disconnected successfully, flash program starting...\n`);
+                            const flashExitCode = await this.tool.flash();
+                            await this.connect(this.peripheralParams, true);
+                            this.sendRemoteRequest('uploadSuccess', { aborted: flashExitCode === 'Aborted' });
+                        } catch (err) {
+                            this.sendRemoteRequest('uploadError', {
+                                message: ansi.red + err.message
+                            });
+                            // if error in flash step. It is considered that the device has been removed.
+                            this.sendRemoteRequest('peripheralUnplug', null);
+                        }
+                    } else if (exitCode === 'Aborted') {
+                        this.sendRemoteRequest('uploadSuccess', { aborted: true });
                     }
-                } else if (exitCode === 'Aborted') {
-                    this.sendRemoteRequest('uploadSuccess', {aborted: true});
+                } catch (err) {
+                    this.sendRemoteRequest('uploadError', {
+                        message: ansi.red + err.message
+                    });
                 }
-            } catch (err) {
-                this.sendRemoteRequest('uploadError', {
-                    message: ansi.red + err.message
-                });
-            }
-            break;
-        case 'microbit':
-            this.tool = new Microbit(this.peripheral.path, config, this.userDataPath,
-                this.toolsPath, this.sendstd.bind(this), this.sendRemoteRequest.bind(this));
-            try {
-                this.sendRemoteRequest('setUploadAbortEnabled', true);
-                await this.disconnect();
-                const exitCode = await this.tool.flash(code);
-                await this.connect(this.peripheralParams, true);
-                await this.updateBaudrate({baudRate: 115200});
-                this.sendstd(`${ansi.clear}Reset device\n`);
-                await this.write({message: '04', encoding: 'hex'});
-                await this.updateBaudrate({baudRate: baudRate});
+                break;
+            case 'microbit':
+                this.tool = new Microbit(this.peripheral.path, config, this.userDataPath,
+                    this.toolsPath, this.sendstd.bind(this), this.sendRemoteRequest.bind(this));
+                try {
+                    this.sendRemoteRequest('setUploadAbortEnabled', true);
+                    await this.disconnect();
+                    const exitCode = await this.tool.flash(code);
+                    await this.connect(this.peripheralParams, true);
+                    await this.updateBaudrate({ baudRate: 115200 });
+                    this.sendstd(`${ansi.clear}Reset device\n`);
+                    await this.write({ message: '04', encoding: 'hex' });
+                    await this.updateBaudrate({ baudRate: baudRate });
 
-                this.sendRemoteRequest('uploadSuccess', {aborted: exitCode === 'Aborted'});
-            } catch (err) {
-                this.sendRemoteRequest('uploadError', {
-                    message: ansi.red + err.message
-                });
-                this.sendRemoteRequest('peripheralUnplug', null);
-            }
-            break;
+                    this.sendRemoteRequest('uploadSuccess', { aborted: exitCode === 'Aborted' });
+                } catch (err) {
+                    this.sendRemoteRequest('uploadError', {
+                        message: ansi.red + err.message
+                    });
+                    this.sendRemoteRequest('peripheralUnplug', null);
+                }
+                break;
         }
 
         this.tool = null;
     }
 
-    async uploadFirmware (params) {
+    async uploadFirmware(params) {
         switch (params.type) {
-        case 'arduino':
-            this.tool = new Arduino(this.peripheral.path, params, this.userDataPath,
-                this.toolsPath, this.sendstd.bind(this));
-            try {
-                this.sendRemoteRequest('setUploadAbortEnabled', true);
-                this.sendstd(`${ansi.clear}Disconnect serial port\n`);
-                await this.disconnect();
-                this.sendstd(`${ansi.clear}Disconnected successfully, flash program starting...\n`);
-                const flashExitCode = await this.tool.flashRealtimeFirmware();
-                await this.connect(this.peripheralParams, true);
-                this.sendRemoteRequest('uploadSuccess', {aborted: flashExitCode === 'Aborted'});
-            } catch (err) {
-                this.sendRemoteRequest('uploadError', {
-                    message: ansi.red + err.message
-                });
-            }
-            break;
+            case 'arduino':
+                this.tool = new Arduino(this.peripheral.path, params, this.userDataPath,
+                    this.toolsPath, this.sendstd.bind(this));
+                try {
+                    this.sendRemoteRequest('setUploadAbortEnabled', true);
+                    this.sendstd(`${ansi.clear}Disconnect serial port\n`);
+                    await this.disconnect();
+                    this.sendstd(`${ansi.clear}Disconnected successfully, flash program starting...\n`);
+                    const flashExitCode = await this.tool.flashRealtimeFirmware();
+                    await this.connect(this.peripheralParams, true);
+                    this.sendRemoteRequest('uploadSuccess', { aborted: flashExitCode === 'Aborted' });
+                } catch (err) {
+                    this.sendRemoteRequest('uploadError', {
+                        message: ansi.red + err.message
+                    });
+                }
+                break;
         }
 
         this.tool = null;
     }
 
-    async abortUpload () {
+    async abortUpload() {
         if (this.tool !== null) {
             this.tool.abortUpload();
         }
     }
 
-    sendstd (message) {
+    sendstd(message) {
         if (this._socket) {
             this.sendRemoteRequest('uploadStdout', {
                 message: message
@@ -400,7 +409,7 @@ class SerialportSession extends Session {
         }
     }
 
-    dispose () {
+    dispose() {
         this.disconnect();
         super.dispose();
         this.socket = null;

@@ -1,6 +1,6 @@
 const http = require('http');
 const url = require('url');
-const {Server} = require('ws');
+const { Server } = require('ws');
 const Emitter = require('events');
 const path = require('path');
 const fetch = require('node-fetch');
@@ -47,19 +47,19 @@ const REOPEN_INTERVAL = 1000 * 1;
  * @readonly
  */
 const ROUTERS = {
-    '/tubitblock/serialport': require('./session/serialport') // eslint-disable-line global-require
+    '/openblock/serialport': require('./session/serialport') // eslint-disable-line global-require
 };
 
 /**
  * A server to provide local hardware api.
  */
-class TUbitBlockLink extends Emitter{
+class TUbitBlockLink extends Emitter {
     /**
      * Construct a TUbitBlock link server object.
      * @param {string} userDataPath - the path to save user data.
      * @param {string} toolsPath - the path of build and flash tools.
      */
-    constructor (userDataPath, toolsPath) {
+    constructor(userDataPath, toolsPath) {
         super();
 
         if (userDataPath) {
@@ -77,10 +77,10 @@ class TUbitBlockLink extends Emitter{
         this._port = DEFAULT_PORT;
         this._host = DEFAULT_HOST;
         this._httpServer = http.createServer();
-        this._socketServer = new Server({server: this._httpServer});
+        this._socketServer = new Server({ server: this._httpServer });
 
         this._socketServer.on('connection', (socket, request) => {
-            const {pathname} = url.parse(request.url);
+            const { pathname } = url.parse(request.url);
             const Session = ROUTERS[pathname];
             let session;
             if (Session) {
@@ -106,7 +106,7 @@ class TUbitBlockLink extends Emitter{
             });
     }
 
-    isSameServer (host, port) {
+    isSameServer(host, port) {
         return new Promise((resolve, reject) => {
             fetch(`http://${host}:${port}`)
                 .then(res => res.text())
@@ -125,7 +125,7 @@ class TUbitBlockLink extends Emitter{
      * @param {number} port - the port to listen.
      * @param {string} host - the host to listen.
      */
-    listen (port, host) {
+    listen(port, host) {
         if (port) {
             this._port = port;
         }
@@ -135,7 +135,7 @@ class TUbitBlockLink extends Emitter{
 
         this._httpServer.on('request', (request, res) => {
             if (request.url === '/') {
-                res.writeHead(200, {'Content-Type': 'text/html'});
+                res.writeHead(200, { 'Content-Type': 'text/html' });
                 res.end(SERVER_NAME);
             }
         });

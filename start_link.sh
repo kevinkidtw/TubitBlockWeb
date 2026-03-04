@@ -243,11 +243,34 @@ echo ""
 echo "======================================================="
 echo "TubitBlockWeb 硬體連線助手啟動中！"
 echo "請勿關閉此終端機視窗，把它最小化即可！"
-echo ""
-echo "本服務負責編譯與燒錄 (port 20111)，"
-echo "網頁介面請使用老師提供的 GitHub Pages 網址。"
 echo "======================================================="
 echo ""
 
+# 偵測專案根目錄（包含 www/ 和 external-resources/ 的目錄）
+PROJECT_ROOT="$(cd "$LINK_DIR/.." && pwd)"
+
+# 如果本地有 www/ 目錄，啟動 HTTP 靜態伺服器供本地開發使用
+if [ -d "$PROJECT_ROOT/www" ]; then
+    lsof -ti:8080 | xargs kill -9 2>/dev/null || true
+    echo "正在啟動 HTTP 靜態伺服器 (port 8080)..."
+    cd "$PROJECT_ROOT"
+    nohup python3 -m http.server 8080 -d "$PROJECT_ROOT" > "$PROJECT_ROOT/http_server.log" 2>&1 &
+    HTTP_PID=$!
+    echo "HTTP 伺服器已啟動 (PID: $HTTP_PID)"
+    echo ""
+    echo "請用瀏覽器開啟: http://localhost:8080/www/index.html"
+    echo ""
+else
+    echo "本服務負責編譯與燒錄 (port 20111)，"
+    echo "網頁介面請使用老師提供的 GitHub Pages 網址。"
+    echo ""
+fi
+
 # 啟動 Link 連線服務 (port 20111)
+cd "$LINK_DIR"
 npm start
+
+# 當 npm start 結束時，也關閉 HTTP 伺服器
+if [ -n "$HTTP_PID" ]; then
+    kill $HTTP_PID 2>/dev/null
+fi
