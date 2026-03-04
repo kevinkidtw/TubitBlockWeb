@@ -52,7 +52,8 @@ function Download-FileWithProgress {
         try {
             $headResp = $client.SendAsync((New-Object System.Net.Http.HttpRequestMessage([System.Net.Http.HttpMethod]::Head, $Url))).Result
             $totalBytes = $headResp.Content.Headers.ContentLength
-        } catch {}
+        }
+        catch {}
         $totalMB = if ($totalBytes -gt 0) { [math]::Round($totalBytes / 1MB, 1) } else { "?" }
 
         # 開始下載
@@ -77,7 +78,8 @@ function Download-FileWithProgress {
                 if ($totalBytes -gt 0) {
                     $pct = [math]::Min(100, [math]::Round($downloaded * 100 / $totalBytes))
                     Write-Host "`r    [$pct%] ${downloadedMB} MB / ${totalMB} MB  (${speedMB} MB/s)   " -NoNewline -ForegroundColor Cyan
-                } else {
+                }
+                else {
                     Write-Host "`r    ${downloadedMB} MB  (${speedMB} MB/s)   " -NoNewline -ForegroundColor Cyan
                 }
             }
@@ -90,7 +92,8 @@ function Download-FileWithProgress {
 
         $fileSizeMB = [math]::Round((Get-Item $OutFile).Length / 1MB, 1)
         Write-Host "    下載完成 (${fileSizeMB} MB)" -ForegroundColor Green
-    } catch {
+    }
+    catch {
         # 確保清理
         if ($fileStream) { $fileStream.Close() }
         if ($stream) { $stream.Close() }
@@ -106,7 +109,8 @@ function Download-FileWithProgress {
             Invoke-WebRequest -Uri $Url -OutFile $OutFile -UseBasicParsing
             $fileSizeMB = [math]::Round((Get-Item $OutFile).Length / 1MB, 1)
             Write-Host "    下載完成 (${fileSizeMB} MB)" -ForegroundColor Green
-        } finally {
+        }
+        finally {
             $ProgressPreference = $oldPref
         }
     }
@@ -124,7 +128,8 @@ if (-not $npmPath) {
     if ($wingetPath) {
         Write-Host "  偵測到 winget，正在安裝 Node.js LTS 版本..."
         winget install -e --id OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements
-    } else {
+    }
+    else {
         Write-Host "  正在從 Node.js 官方網站下載安裝檔..."
         $msiPath = Join-Path $env:TEMP "nodejs_setup.msi"
         Download-FileWithProgress -Url "https://nodejs.org/dist/v20.11.1/node-v20.11.1-x64.msi" -OutFile $msiPath -DisplayName "Node.js LTS"
@@ -156,7 +161,8 @@ if (-not $gitPath) {
     if ($wingetPath) {
         Write-Host "  使用 winget 安裝 Git..." -ForegroundColor Cyan
         winget install -e --id Git.Git --accept-source-agreements --accept-package-agreements
-    } else {
+    }
+    else {
         Write-Host "  正在從 Git 官方網站下載安裝檔..." -ForegroundColor Cyan
         $gitInstaller = Join-Path $env:TEMP "Git-Setup.exe"
         Download-FileWithProgress -Url "https://github.com/git-for-windows/git/releases/download/v2.47.1.windows.2/Git-2.47.1.2-64-bit.exe" -OutFile $gitInstaller -DisplayName "Git for Windows"
@@ -172,10 +178,12 @@ if (-not $gitPath) {
     if (-not $gitPath) {
         Write-Host "  [警告] Git 安裝後仍無法偵測，可能需要重啟終端。" -ForegroundColor Yellow
         Write-Host "  將改用壓縮包方式下載專案。" -ForegroundColor Yellow
-    } else {
+    }
+    else {
         Write-Host "  [OK] Git 安裝成功: $($gitPath.Source)" -ForegroundColor Green
     }
-} else {
+}
+else {
     Write-Host "  [OK] 已找到 Git: $($gitPath.Source)" -ForegroundColor Green
 }
 
@@ -232,7 +240,8 @@ if (-not $linkDir) {
         $ErrorActionPreference = $oldEAP
         Write-Host ""
 
-    } else {
+    }
+    else {
         # 無 Git 時，下載整個 ZIP 再只保留 link 目錄
         Write-Host "  Git 不可用，改用壓縮包下載..." -ForegroundColor Yellow
         $zipPath = Join-Path $scriptDir "TubitBlockWeb.zip"
@@ -289,40 +298,48 @@ Write-Host "  對應平台: Windows x64" -ForegroundColor DarkGray
 # 定義 6 個需要下載的工具
 $toolList = @(
     @{
-        Name = "esp-x32 (Xtensa 編譯器, ~254MB)"
-        Url = "https://github.com/espressif/crosstool-NG/releases/download/esp-13.2.0_20240530/xtensa-esp-elf-13.2.0_20240530-x86_64-w64-mingw32.zip"
-        DestDir = "esp-x32\2405"
+        Name        = "esp-x32 (Xtensa 編譯器, ~254MB)"
+        Url         = "https://github.com/espressif/crosstool-NG/releases/download/esp-13.2.0_20240530/xtensa-esp-elf-13.2.0_20240530-x86_64-w64-mingw32.zip"
+        DestDir     = "esp-x32\2405"
         StripPrefix = "xtensa-esp-elf"
     },
     @{
-        Name = "esp-rv32 (RISC-V 編譯器, ~350MB)"
-        Url = "https://github.com/espressif/crosstool-NG/releases/download/esp-13.2.0_20240530/riscv32-esp-elf-13.2.0_20240530-x86_64-w64-mingw32.zip"
-        DestDir = "esp-rv32\2405"
+        Name        = "esp-rv32 (RISC-V 編譯器, ~350MB)"
+        Url         = "https://github.com/espressif/crosstool-NG/releases/download/esp-13.2.0_20240530/riscv32-esp-elf-13.2.0_20240530-x86_64-w64-mingw32.zip"
+        DestDir     = "esp-rv32\2405"
         StripPrefix = "riscv32-esp-elf"
     },
     @{
-        Name = "esptool_py (燒錄工具, ~26MB)"
-        Url = "https://github.com/espressif/arduino-esp32/releases/download/3.1.0-RC3/esptool-v4.9.dev3-win64.zip"
-        DestDir = "esptool_py\4.9.dev3"
+        Name        = "esptool_py (燒錄工具, ~26MB)"
+        Url         = "https://github.com/espressif/arduino-esp32/releases/download/3.1.0-RC3/esptool-v4.9.dev3-win64.zip"
+        DestDir     = "esptool_py\4.9.dev3"
         StripPrefix = "esptool"
     },
     @{
-        Name = "openocd-esp32 (除錯工具, ~3MB)"
-        Url = "https://github.com/espressif/openocd-esp32/releases/download/v0.12.0-esp32-20241016/openocd-esp32-win64-0.12.0-esp32-20241016.zip"
-        DestDir = "openocd-esp32\v0.12.0-esp32-20241016"
+        Name        = "openocd-esp32 (除錯工具, ~3MB)"
+        Url         = "https://github.com/espressif/openocd-esp32/releases/download/v0.12.0-esp32-20241016/openocd-esp32-win64-0.12.0-esp32-20241016.zip"
+        DestDir     = "openocd-esp32\v0.12.0-esp32-20241016"
         StripPrefix = "openocd-esp32"
     },
     @{
-        Name = "xtensa-esp-elf-gdb (Xtensa GDB, ~32MB)"
-        Url = "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v14.2_20240403/xtensa-esp-elf-gdb-14.2_20240403-x86_64-w64-mingw32.zip"
-        DestDir = "xtensa-esp-elf-gdb\14.2_20240403"
+        Name        = "xtensa-esp-elf-gdb (Xtensa GDB, ~32MB)"
+        Url         = "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v14.2_20240403/xtensa-esp-elf-gdb-14.2_20240403-x86_64-w64-mingw32.zip"
+        DestDir     = "xtensa-esp-elf-gdb\14.2_20240403"
         StripPrefix = "xtensa-esp-elf-gdb"
     },
     @{
-        Name = "riscv32-esp-elf-gdb (RISC-V GDB, ~32MB)"
-        Url = "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v14.2_20240403/riscv32-esp-elf-gdb-14.2_20240403-x86_64-w64-mingw32.zip"
-        DestDir = "riscv32-esp-elf-gdb\14.2_20240403"
+        Name        = "riscv32-esp-elf-gdb (RISC-V GDB, ~32MB)"
+        Url         = "https://github.com/espressif/binutils-gdb/releases/download/esp-gdb-v14.2_20240403/riscv32-esp-elf-gdb-14.2_20240403-x86_64-w64-mingw32.zip"
+        DestDir     = "riscv32-esp-elf-gdb\14.2_20240403"
         StripPrefix = "riscv32-esp-elf-gdb"
+    },
+    @{
+        Name        = "arduino-cli (編譯核心工具, ~12MB)"
+        Url         = "https://github.com/arduino/arduino-cli/releases/download/v0.35.3/arduino-cli_0.35.3_Windows_64bit.zip"
+        # 覆寫根目錄以放置在 tools\Arduino 下
+        DestRoot    = "$linkDir\tools\Arduino"
+        DestDir     = ""
+        StripPrefix = "" # ZIP 內直接有 arduino-cli.exe
     }
 )
 
@@ -331,10 +348,15 @@ function Download-EspTool {
         [string]$Name,
         [string]$Url,
         [string]$DestDir,
-        [string]$StripPrefix
+        [string]$StripPrefix,
+        [string]$DestRoot
     )
 
-    $fullDest = Join-Path $toolsDir $DestDir
+    if ([string]::IsNullOrEmpty($DestRoot)) {
+        $DestRoot = $toolsDir
+    }
+    
+    $fullDest = Join-Path $DestRoot $DestDir
 
     # 檢查是否已存在
     if ((Test-Path $fullDest) -and (Get-ChildItem $fullDest -ErrorAction SilentlyContinue | Measure-Object).Count -gt 0) {
@@ -359,10 +381,16 @@ function Download-EspTool {
     New-Item -ItemType Directory -Path $fullDest -Force | Out-Null
 
     # 移動檔案（去掉頂層資料夾）
-    $innerDir = Join-Path $extractTemp $StripPrefix
-    if (Test-Path $innerDir) {
-        Get-ChildItem -Path $innerDir | Move-Item -Destination $fullDest -Force
-    } else {
+    if (-not [string]::IsNullOrEmpty($StripPrefix)) {
+        $innerDir = Join-Path $extractTemp $StripPrefix
+        if (Test-Path $innerDir) {
+            Get-ChildItem -Path $innerDir | Move-Item -Destination $fullDest -Force
+        }
+        else {
+            Get-ChildItem -Path $extractTemp | Move-Item -Destination $fullDest -Force
+        }
+    }
+    else {
         Get-ChildItem -Path $extractTemp | Move-Item -Destination $fullDest -Force
     }
 
@@ -378,8 +406,8 @@ Write-Host ""
 $toolIndex = 0
 foreach ($tool in $toolList) {
     $toolIndex++
-    Write-Host "  ($toolIndex/6)" -NoNewline
-    Download-EspTool -Name $tool.Name -Url $tool.Url -DestDir $tool.DestDir -StripPrefix $tool.StripPrefix
+    Write-Host "  ($toolIndex/7)" -NoNewline
+    Download-EspTool -Name $tool.Name -Url $tool.Url -DestDir $tool.DestDir -StripPrefix $tool.StripPrefix -DestRoot $tool.DestRoot
 }
 
 Write-Host ""
