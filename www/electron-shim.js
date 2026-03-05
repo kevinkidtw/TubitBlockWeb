@@ -1287,11 +1287,51 @@
         }
 
         // Run when DOM is ready
+        function patchExtensionIcons(node) {
+            if (!node || !node.querySelectorAll) return;
+            var imgs = node.querySelectorAll('img');
+            for (var i = 0; i < imgs.length; i++) {
+                var img = imgs[i];
+                if (img.dataset.iconPatched) continue;
+
+                var src = img.getAttribute('src');
+                if (!src || src.indexOf('external-resources/extensions/') === -1) continue;
+
+                var container = img.parentElement;
+                var text = '';
+                for (var k = 0; k < 4; k++) {
+                    if (!container) break;
+                    text = container.innerText || container.textContent || '';
+                    text = text.trim();
+                    if (text && text.length > 0) break;
+                    container = container.parentElement;
+                }
+
+                if (text && text.length > 0) {
+                    var firstChar = text.charAt(0).toUpperCase();
+
+                    // Material Design colors
+                    var colors = ['#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#03A9F4', '#00BCD4', '#009688', '#4CAF50', '#8BC34A', '#FF9800', '#FF5722', '#795548', '#607D8B'];
+                    var colorIndex = text.charCodeAt(0) % colors.length;
+                    var bgColor = colors[colorIndex];
+
+                    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60">' +
+                        '<circle cx="30" cy="30" r="30" fill="' + bgColor + '"/>' +
+                        '<text x="30" y="40" font-family="sans-serif" font-size="30" font-weight="bold" fill="white" text-anchor="middle">' + firstChar + '</text>' +
+                        '</svg>';
+
+                    img.dataset.iconPatched = "true";
+                    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+                }
+            }
+        }
+
         function startPatching() {
             patchTextNodes(document.body);
             patchInputs(document.body);
             patchLinks(document.body);
             hideUnwantedItems(document.body);
+            patchExtensionIcons(document.body);
             patchTitle();
 
             // Watch for React re-renders
@@ -1309,6 +1349,7 @@
                                 patchInputs(node);
                                 patchLinks(node);
                                 hideUnwantedItems(node);
+                                patchExtensionIcons(node);
                             }
                         }
                     } else if (m.type === 'characterData') {
