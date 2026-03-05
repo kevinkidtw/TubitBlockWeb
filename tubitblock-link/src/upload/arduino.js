@@ -35,7 +35,8 @@ class Arduino {
         this._configFilePath = path.join(this._userDataPath, 'arduino/arduino-cli.yaml');
         this._projectFilePath = path.join(this._userDataPath, 'arduino', projectPathName);
 
-        this._arduinoCliPath = path.join(this._arduinoPath, 'arduino-cli');
+        this._arduinoCliPath = path.join(this._arduinoPath,
+            os.platform() === 'win32' ? 'arduino-cli.exe' : 'arduino-cli');
 
         this._codeFolderPath = path.join(this._projectFilePath, 'code');
         this._codeFilePath = path.join(this._codeFolderPath, 'code.ino');

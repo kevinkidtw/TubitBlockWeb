@@ -199,6 +199,44 @@ download_tool() {
 
 echo ""
 
+# ---- 下載 arduino-cli ----
+ARDUINO_DIR="$LINK_DIR/tools/Arduino"
+ARDUINO_CLI_BIN="$ARDUINO_DIR/arduino-cli"
+
+if [ "$OS_NAME" == "Darwin" ]; then
+    if [ "$ARCH" == "arm64" ]; then
+        ARDUINO_CLI_URL="https://github.com/arduino/arduino-cli/releases/download/v0.35.3/arduino-cli_0.35.3_macOS_ARM64.tar.gz"
+    else
+        ARDUINO_CLI_URL="https://github.com/arduino/arduino-cli/releases/download/v0.35.3/arduino-cli_0.35.3_macOS_64bit.tar.gz"
+    fi
+elif [ "$OS_NAME" == "Linux" ]; then
+    ARDUINO_CLI_URL="https://github.com/arduino/arduino-cli/releases/download/v0.35.3/arduino-cli_0.35.3_Linux_64bit.tar.gz"
+fi
+
+# 檢查 arduino-cli 是否需要更新（架構不匹配或不存在）
+NEED_DOWNLOAD=false
+if [ ! -f "$ARDUINO_CLI_BIN" ]; then
+    NEED_DOWNLOAD=true
+elif [ "$OS_NAME" == "Darwin" ] && [ "$ARCH" == "arm64" ]; then
+    # 檢查是否為 ARM64 原生版
+    if ! file "$ARDUINO_CLI_BIN" | grep -q "arm64"; then
+        echo "  [!] arduino-cli 為 x86_64 版本，將更新為 ARM64 原生版..."
+        NEED_DOWNLOAD=true
+    fi
+fi
+
+if [ "$NEED_DOWNLOAD" == "true" ]; then
+    echo "  [↓] 正在下載 arduino-cli v0.35.3 ..."
+    TMP_CLI="/tmp/arduino-cli_$$.tar.gz"
+    curl -L --progress-bar -o "$TMP_CLI" "$ARDUINO_CLI_URL"
+    tar xzf "$TMP_CLI" -C "$ARDUINO_DIR" arduino-cli
+    chmod +x "$ARDUINO_CLI_BIN"
+    rm -f "$TMP_CLI"
+    echo "  [✓] arduino-cli 下載完成"
+else
+    echo "  [✓] arduino-cli 已存在，跳過下載"
+fi
+
 # 下載 6 個 OS-specific 工具
 download_tool "esp-x32 (Xtensa 編譯器)" \
     "$ESP_X32_URL" \

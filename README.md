@@ -1,6 +1,6 @@
-# TubitBlock 開放原始碼積木程式教育平臺
+# TUbitBlock 開放原始碼積木程式教育平臺
 
-TubitBlock 是一個基於網頁的視覺化積木程式設計平臺，專為學生與教師設計，支援多種硬體設備（如 TU:bit、ESP32、Arduino 等）的程式編寫與線上燒錄。
+TUbitBlock 是一個基於網頁的視覺化積木程式設計平臺，專為學生與教師設計，支援多種硬體設備（如 TU:bit、ESP32、Arduino 等）的程式編寫與線上燒錄。
 
 ## 💡 系統架構簡介
 
@@ -100,7 +100,7 @@ TubitBlock 是一個基於網頁的視覺化積木程式設計平臺，專為學
 
 ### 🛠 教學資源擴充：如何新增硬體設備與感測器？
 
-TubitBlock 強大的地方在於極高的客製化彈性。若要新增學校獨有的感測器積木：
+TUbitBlock 強大的地方在於極高的客製化彈性。若要新增學校獨有的感測器積木：
 
 1. **設定裝置清單 (`zh-tw.json`)**：
    - 路徑：`external-resources/devices/zh-tw.json`。
@@ -122,6 +122,7 @@ TubitBlock 強大的地方在於極高的客製化彈性。若要新增學校獨
 - **專案瘦身與清理**：清理了 1GB 以上的舊版工具包壓縮檔（如過期的 `openblock-tools-darwin-x64-v2.11.1.7z`），並移除了殘留的日誌與空目錄，完善了 `.gitignore`，將專案體積大幅縮小。
 - **TUbitBlock 全面更名與品牌重塑**：將全專案超過 80 個檔案內的歷史 `openblock` 參考全面更名為 `tubitblock`。包含主目錄重命名為 `tubitblock-link`、更新環境變數 (`.tubitblockData`)、修改 Arduino C++ 擴充函式庫檔名。針對無法手動修改的 webpack 編譯產物，則創新地利用 `electron-shim.js` 加入 `MutationObserver` 進行瀏覽器端動態 DOM 文字修補。
 - **一鍵啟動腳本包含靜態伺服器**：修復了網頁版找不到擴展圖片的 404 問題。啟動腳本現在會完整建立本地的全端環境，包含啟動 HTTP 靜態檔案伺服器 (Port 8080) 與 WebSocket 通訊服務 (Port 20111)。
+- **網頁版說明按鈕重導向修復**：針對編譯檔內硬編碼的舊版 `wiki.openblock.cc` 連結，實作了包含 `window.open` 攔截器與 `<a>` 標籤點擊事件捕獲的防護機制，確保所有說明與維基連結皆正確導向至最新的 `trgreat.com/tu-wiki/`。
 
 ---
 

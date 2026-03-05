@@ -391,6 +391,37 @@ foreach ($tool in $toolList) {
     Download-EspTool -Name $tool.Name -Url $tool.Url -DestDir $tool.DestDir
 }
 
+# ---- 下載 arduino-cli.exe ----
+$arduinoDir = Join-Path $linkDir "tools\Arduino"
+$arduinoCliBin = Join-Path $arduinoDir "arduino-cli.exe"
+
+if (-not (Test-Path $arduinoCliBin)) {
+    Write-Host ""
+    Write-Host "  [DL] 正在下載 arduino-cli v0.35.3 (Windows x64)..." -ForegroundColor Cyan
+    $cliZip = Join-Path $env:TEMP "arduino-cli_$(Get-Random).zip"
+    $cliTemp = Join-Path $env:TEMP "arduino-cli_extract_$(Get-Random)"
+    
+    Download-FileWithProgress `
+        -Url "https://github.com/arduino/arduino-cli/releases/download/v0.35.3/arduino-cli_0.35.3_Windows_64bit.zip" `
+        -OutFile $cliZip `
+        -DisplayName "arduino-cli"
+    
+    New-Item -ItemType Directory -Path $cliTemp -Force | Out-Null
+    Expand-Archive -Path $cliZip -DestinationPath $cliTemp -Force
+    
+    # 移動 arduino-cli.exe 到 Arduino 目錄
+    $cliExe = Get-ChildItem -Path $cliTemp -Filter "arduino-cli.exe" -Recurse | Select-Object -First 1
+    if ($cliExe) {
+        Move-Item -Path $cliExe.FullName -Destination $arduinoCliBin -Force
+    }
+    
+    Remove-Item $cliZip -Force -ErrorAction SilentlyContinue
+    Remove-Item $cliTemp -Recurse -Force -ErrorAction SilentlyContinue
+    Write-Host "  [OK] arduino-cli.exe 安裝完成" -ForegroundColor Green
+} else {
+    Write-Host "  [OK] arduino-cli.exe 已存在，跳過下載" -ForegroundColor Green
+}
+
 Write-Host ""
 Write-Host "  ESP32 編譯器工具鏈就緒!" -ForegroundColor Green
 

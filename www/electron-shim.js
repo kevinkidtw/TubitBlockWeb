@@ -143,11 +143,62 @@
         clipboard: clipboard,
         shell: {
             openExternal: function (url) {
+                // 重導向 wiki.openblock.cc 到 trgreat.com/tu-wiki/
+                if (url && /wiki\.openblock\.cc/i.test(url)) {
+                    url = 'https://trgreat.com/tu-wiki/';
+                }
+                if (url && /openblock\.cc/i.test(url)) {
+                    url = 'https://trgreat.com/tu-wiki/';
+                }
+                console.log('[Web] shell.openExternal:', url);
                 window.open(url, '_blank');
             }
         },
         remote: null
     };
+
+    // ---- 全域 URL 重導向攔截器 ----
+    // 編譯後的 GUI 可能繞過 shell.openExternal，直接用 window.open 或 <a> 標籤
+    (function () {
+        var URL_REDIRECTS = [
+            { pattern: /wiki\.openblock\.cc/i, target: 'https://trgreat.com/tu-wiki/' },
+            { pattern: /openblock\.cc/i, target: 'https://trgreat.com/tu-wiki/' }
+        ];
+
+        function redirectUrl(url) {
+            if (!url) return url;
+            for (var i = 0; i < URL_REDIRECTS.length; i++) {
+                if (URL_REDIRECTS[i].pattern.test(url)) {
+                    console.log('[Web] URL redirect:', url, '→', URL_REDIRECTS[i].target);
+                    return URL_REDIRECTS[i].target;
+                }
+            }
+            return url;
+        }
+
+        // 攔截 window.open
+        var _originalWindowOpen = window.open;
+        window.open = function (url, target, features) {
+            url = redirectUrl(url);
+            return _originalWindowOpen.call(window, url, target, features);
+        };
+
+        // 攔截 <a> 標籤點擊事件（捕獲階段）
+        document.addEventListener('click', function (e) {
+            var el = e.target;
+            while (el && el.tagName !== 'A') el = el.parentElement;
+            if (el && el.href) {
+                var newUrl = redirectUrl(el.href);
+                if (newUrl !== el.href) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.open(newUrl, el.target || '_blank');
+                }
+            }
+        }, true); // 使用捕獲階段確保優先處理
+
+        console.log('[TUbitBlock Web] URL redirect interceptors installed.');
+    })();
 
     // ---- @electron/remote shim ----
     const remoteModule = {
@@ -1120,7 +1171,7 @@
         var BRAND_MAP = [
             [/OpenBlockDesktop/g, 'TUbitBlockDesktop'],
             [/OpenBlock\.cc/g, 'TUbitBlock'],
-            [/OpenBlock專案/g, 'TUbitBlock 專案'],
+            [/OpenBlock專案/g, '未命名專案'],
             [/OpenBlock/g, 'TUbitBlock'],
             [/上傳韌體/g, '燒錄程式'],
             [/編程模式/g, '程式設計模式'],
@@ -1148,6 +1199,25 @@
             return result;
         }
 
+        // ---- Monkey-patch input.value setter 攔截 React 受控輸入 ----
+        (function () {
+            var desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+            if (desc && desc.set) {
+                var originalSet = desc.set;
+                Object.defineProperty(HTMLInputElement.prototype, 'value', {
+                    get: desc.get,
+                    set: function (val) {
+                        if (typeof val === 'string') {
+                            val = patchText(val);
+                        }
+                        return originalSet.call(this, val);
+                    },
+                    configurable: true,
+                    enumerable: true
+                });
+            }
+        })();
+
         function patchTextNodes(root) {
             var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
             var node;
@@ -1155,6 +1225,22 @@
                 var patched = patchText(node.nodeValue);
                 if (patched !== node.nodeValue) {
                     node.nodeValue = patched;
+                }
+            }
+        }
+
+        // 替換 input/textarea 的 value 和 placeholder
+        function patchInputs(root) {
+            var inputs = root.querySelectorAll ? root.querySelectorAll('input, textarea') : [];
+            for (var i = 0; i < inputs.length; i++) {
+                var el = inputs[i];
+                if (el.value) {
+                    var pv = patchText(el.value);
+                    if (pv !== el.value) el.value = pv;
+                }
+                if (el.placeholder) {
+                    var pp = patchText(el.placeholder);
+                    if (pp !== el.placeholder) el.placeholder = pp;
                 }
             }
         }
@@ -1203,6 +1289,7 @@
         // Run when DOM is ready
         function startPatching() {
             patchTextNodes(document.body);
+            patchInputs(document.body);
             patchLinks(document.body);
             hideUnwantedItems(document.body);
             patchTitle();
@@ -1219,6 +1306,7 @@
                                 if (p !== node.nodeValue) node.nodeValue = p;
                             } else if (node.nodeType === Node.ELEMENT_NODE) {
                                 patchTextNodes(node);
+                                patchInputs(node);
                                 patchLinks(node);
                                 hideUnwantedItems(node);
                             }
