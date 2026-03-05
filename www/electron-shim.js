@@ -1289,15 +1289,9 @@
         // Run when DOM is ready
         function patchExtensionIcons(node) {
             if (!node || !node.querySelectorAll) return;
-            var imgs = node.querySelectorAll('img');
-            for (var i = 0; i < imgs.length; i++) {
-                var img = imgs[i];
-                if (img.dataset.iconPatched) continue;
 
-                var src = img.getAttribute('src');
-                if (!src || src.indexOf('external-resources/extensions/') === -1) continue;
-
-                var container = img.parentElement;
+            function _applyTextSvgToElement(element, targetElement, prop) {
+                var container = element.parentElement;
                 var text = '';
                 for (var k = 0; k < 4; k++) {
                     if (!container) break;
@@ -1309,8 +1303,6 @@
 
                 if (text && text.length > 0) {
                     var firstChar = text.charAt(0).toUpperCase();
-
-                    // Material Design colors
                     var colors = ['#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#03A9F4', '#00BCD4', '#009688', '#4CAF50', '#8BC34A', '#FF9800', '#FF5722', '#795548', '#607D8B'];
                     var colorIndex = text.charCodeAt(0) % colors.length;
                     var bgColor = colors[colorIndex];
@@ -1319,9 +1311,48 @@
                         '<circle cx="30" cy="30" r="30" fill="' + bgColor + '"/>' +
                         '<text x="30" y="40" font-family="sans-serif" font-size="30" font-weight="bold" fill="white" text-anchor="middle">' + firstChar + '</text>' +
                         '</svg>';
+                    var dataUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
 
-                    img.dataset.iconPatched = "true";
-                    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+                    element.dataset.iconPatched = "true";
+                    if (prop === 'src') {
+                        targetElement.src = dataUri;
+                    } else if (prop === 'backgroundImage') {
+                        targetElement.style.backgroundImage = 'url("' + dataUri + '")';
+                        targetElement.style.backgroundSize = 'contain';
+                    }
+                }
+            }
+
+            // Patch <img> tags (Library Modal)
+            var imgs = node.querySelectorAll('img');
+            for (var i = 0; i < imgs.length; i++) {
+                var img = imgs[i];
+                if (img.dataset.iconPatched) continue;
+                var src = img.getAttribute('src');
+                if (!src || src.indexOf('/extensions/') === -1) continue;
+                _applyTextSvgToElement(img, img, 'src');
+            }
+
+            // Patch .scratchCategoryItemIcon divs (Sidebar Palette)
+            var divs = node.querySelectorAll('.scratchCategoryItemIcon');
+            for (var j = 0; j < divs.length; j++) {
+                var div = divs[j];
+                if (div.dataset.iconPatched) continue;
+                var styleBg = div.style.backgroundImage || '';
+                if (!styleBg || styleBg.indexOf('/extensions/') === -1) continue;
+                _applyTextSvgToElement(div, div, 'backgroundImage');
+            }
+
+            // If the node itself is one of the targets (from mutation observer attribute check)
+            if (node.tagName === 'IMG' && !node.dataset.iconPatched) {
+                var src2 = node.getAttribute('src');
+                if (src2 && src2.indexOf('/extensions/') !== -1) {
+                    _applyTextSvgToElement(node, node, 'src');
+                }
+            } else if (node.classList && node.classList.contains('scratchCategoryItemIcon') && !node.dataset.iconPatched) {
+                var styleBg2 = node.style.backgroundImage || '';
+                if (styleBg2 && styleBg2.indexOf('/extensions/') !== -1) {
+                    _applyTextSvgToElement(node, node, 'backgroundImage');
                 }
             }
         }
@@ -1355,6 +1386,8 @@
                     } else if (m.type === 'characterData') {
                         var p2 = patchText(m.target.nodeValue);
                         if (p2 !== m.target.nodeValue) m.target.nodeValue = p2;
+                    } else if (m.type === 'attributes') {
+                        patchExtensionIcons(m.target);
                     }
                 }
                 patchTitle();
@@ -1363,7 +1396,9 @@
             observer.observe(document.body, {
                 childList: true,
                 subtree: true,
-                characterData: true
+                characterData: true,
+                attributes: true,
+                attributeFilter: ['src', 'style']
             });
 
             console.log('[TUbitBlock Web] Brand patcher installed.');
