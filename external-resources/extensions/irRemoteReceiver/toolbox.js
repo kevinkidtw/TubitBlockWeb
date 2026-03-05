@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_IRREMOTERECEIVER_CATEGORY}" id="IRREMOTERECEIVER_CATEGORY" colour="#BB5E00" secondaryColour="#9F5000" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_IRREMOTERECEIVER_CATEGORY}" id="IRREMOTERECEIVER_CATEGORY" colour="#BB5E00" secondaryColour="#9F5000" iconURI="../external-resources/extensions/irRemoteReceiver/assets/irRemoteReceiver.png">
     <block type="irRemoteReceiver_init" id="irRemoteReceiver_init">
         <field name="PIN">2</field>
     </block>

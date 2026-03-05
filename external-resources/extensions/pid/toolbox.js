@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_TUBITV2PID_CATEGORY}" id="TUBITV2PID_CATEGORY" colour="#9fc5e8" secondaryColour="#9fc5e8" iconURI="../external-resources/extensions/default_icon.svg"> 
+<category name="%{BKY_TUBITV2PID_CATEGORY}" id="TUBITV2PID_CATEGORY" colour="#9fc5e8" secondaryColour="#9fc5e8" iconURI="../external-resources/extensions/pid/assets/pid.png"> 
 
     <block type="tubitv2pid_create" id="tubitv2pid_create">
     <value name="INPUT">

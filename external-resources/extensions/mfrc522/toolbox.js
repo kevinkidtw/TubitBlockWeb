@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_MFRC522_CATEGORY}" id="MFRC522_CATEGORY" colour="#F00078" secondaryColour="#D9006C" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_MFRC522_CATEGORY}" id="MFRC522_CATEGORY" colour="#F00078" secondaryColour="#D9006C" iconURI="../external-resources/extensions/mfrc522/assets/mfrc522.png">
     <block type="mfrc522_init" id="mfrc522_init">
         <field name="SDA">2</field>
         <field name="RST">3</field>

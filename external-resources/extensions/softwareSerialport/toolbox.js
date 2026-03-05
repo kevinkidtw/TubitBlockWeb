@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_SOFTWARESERIAL_CATEGORY}" id="SOFTWARESERIAL_CATEGORY" colour="#00D7B0" secondaryColour="#00BE96" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_SOFTWARESERIAL_CATEGORY}" id="SOFTWARESERIAL_CATEGORY" colour="#00D7B0" secondaryColour="#00BE96" iconURI="../external-resources/extensions/softwareSerialport/assets/softwareSerial.png">
     <block type="softwareSerial_begin" id="softwareSerial_begin">
         <value name="NO">
             <shadow type="math_whole_number">

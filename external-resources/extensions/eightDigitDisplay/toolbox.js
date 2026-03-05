@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_EIGHTDIGITDISPLAY_CATEGORY}" id="EIGHTDIGITDISPLAY_CATEGORY" colour="#A0522D" secondaryColour="#8B4513" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_EIGHTDIGITDISPLAY_CATEGORY}" id="EIGHTDIGITDISPLAY_CATEGORY" colour="#A0522D" secondaryColour="#8B4513" iconURI="../external-resources/extensions/eightDigitDisplay/assets/eightDigitDisplay.png">
     <block type="eightDigitDisplay_init" id="eightDigitDisplay_init">
         <field name="DIN">2</field>
         <field name="CS">3</field>

@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_TUBITV2V7RC_CATEGORY}" id="TUBITV2V7RC_CATEGORY" colour="#C0C0C0" secondaryColour="#C0C0C0" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_TUBITV2V7RC_CATEGORY}" id="TUBITV2V7RC_CATEGORY" colour="#C0C0C0" secondaryColour="#C0C0C0" iconURI="../external-resources/extensions/v7rc/assets/v7rc.png">
     
     <block type="tubitv2v7rc_init" id="tubitv2v7rc_init">
     </block>

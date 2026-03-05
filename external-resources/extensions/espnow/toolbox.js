@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_TUBITV2_ESPNOW_CATEGORY}" id="TUBITV2_ESPNOW_CATEGORY" colour="#FF9874" secondaryColour="#DC6B19" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_TUBITV2_ESPNOW_CATEGORY}" id="TUBITV2_ESPNOW_CATEGORY" colour="#FF9874" secondaryColour="#DC6B19" iconURI="../external-resources/extensions/espnow/assets/espnow.png">
 
     <block type="tubitv2_espnow_init" id="tubitv2_espnow_init"></block>
 

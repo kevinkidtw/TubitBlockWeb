@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_TUBITV2MLLL_CATEGORY}" id="TUBITV2MLLL_CATEGORY" colour="#40E0D0" secondaryColour="#40E0D0" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_TUBITV2MLLL_CATEGORY}" id="TUBITV2MLLL_CATEGORY" colour="#40E0D0" secondaryColour="#40E0D0" iconURI="../external-resources/extensions/ML/assets/AI.png">
     <block type="tubitv2MLLL_init" id="tubitv2MLLL_init">
         <value name="init">
             <shadow type="text">

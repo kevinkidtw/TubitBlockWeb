@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-    <category name="%{BKY_TUBITV2BLYNK_CATEGORY}" id="TUBITV2BLYNK_CATEGORY" colour="#529955" secondaryColour="#457F48" iconURI="../external-resources/extensions/default_icon.svg">
+    <category name="%{BKY_TUBITV2BLYNK_CATEGORY}" id="TUBITV2BLYNK_CATEGORY" colour="#529955" secondaryColour="#457F48" iconURI="../external-resources/extensions/blynk/assets/tubitv2blynk.png">
         
         <block type="tubitv2blynk_template" id="tubitv2blynk_template">
             <value name="TEMPLATE_ID">

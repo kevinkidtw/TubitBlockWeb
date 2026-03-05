@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_TUBITV2LIGHTSENSOR_CATEGORY}" id="TUBITV2LIGHTSENSOR_CATEGORY" colour="#E3BF3A" secondaryColour="#E3BF3A" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_TUBITV2LIGHTSENSOR_CATEGORY}" id="TUBITV2LIGHTSENSOR_CATEGORY" colour="#E3BF3A" secondaryColour="#E3BF3A" iconURI="../external-resources/extensions/light/assets/tubitv2lightsensor.png">
     
     <block type="tubitv2lightsensor_init" id="tubitv2lightsensor_init">
         <value name="PIN">

@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_PCA9685_CATEGORY}" id="PCA9685_CATEGORY" colour="#9F4D95" secondaryColour="#8F4586" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_PCA9685_CATEGORY}" id="PCA9685_CATEGORY" colour="#9F4D95" secondaryColour="#8F4586" iconURI="../external-resources/extensions/pca9685/assets/pca9685.png">
     <block type="pca9685_init" id="pca9685_init">
         <value name="ADDR">
             <shadow type="pca9685_addressNumber">

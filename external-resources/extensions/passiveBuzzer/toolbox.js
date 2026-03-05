@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_PASSIVEBUZZER_CATEGORY}" id="PASSIVEBUZZER_CATEGORY" colour="#B943FF" secondaryColour="#9900FF" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_PASSIVEBUZZER_CATEGORY}" id="PASSIVEBUZZER_CATEGORY" colour="#B943FF" secondaryColour="#9900FF" iconURI="../external-resources/extensions/passiveBuzzer/assets/passiveBuzzer.png">
     <block type="passiveBuzzer_init" id="passiveBuzzer_init">
         <field name="PIN">2</field>
     </block>

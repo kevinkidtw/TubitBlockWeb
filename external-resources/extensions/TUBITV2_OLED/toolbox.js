@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_TUBITV2_OLED_CATEGORY}" id="TUBITV2_OLED_CATEGORY" colour="#3A6EA5" secondaryColour="#3A6EA5" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_TUBITV2_OLED_CATEGORY}" id="TUBITV2_OLED_CATEGORY" colour="#3A6EA5" secondaryColour="#3A6EA5" iconURI="../external-resources/extensions/TUBITV2_OLED/assets/TUBITV2_OLED.jpg">
 
     <block type="tubitv2_oled_start" id="tubitv2_oled_start"></block>
     <block type="tubitv2_oled_update" id="tubitv2_oled_update"></block>

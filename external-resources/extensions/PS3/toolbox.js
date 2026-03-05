@@ -1,6 +1,6 @@
 function registerToolboxs () {
     return `
-        <category name="%{BKY_PS3_CONTROLLER_CATEGORY}" id="PS3_CONTROLLER_CATEGORY" colour="#cd1df5" secondaryColour="#cd1df5" iconURI="../external-resources/extensions/default_icon.svg">
+        <category name="%{BKY_PS3_CONTROLLER_CATEGORY}" id="PS3_CONTROLLER_CATEGORY" colour="#cd1df5" secondaryColour="#cd1df5" iconURI="../external-resources/extensions/PS3/assets/ps3.png">
             <block type="ps3_controller_init" id="ps3_controller_init">
                 <value name="MAC">
                     <shadow type="text">

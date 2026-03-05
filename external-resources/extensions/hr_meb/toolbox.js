@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_HRMEB_CATEGORY}" id="HRMEB_CATEGORY" colour="#6132ff" secondaryColour="#6132ff" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_HRMEB_CATEGORY}" id="HRMEB_CATEGORY" colour="#6132ff" secondaryColour="#6132ff" iconURI="../external-resources/extensions/hr_meb/assets/hrmeb.png">
     <block type="hrmeb_set" id="hrmeb_set">
     <value name="FR">
             <shadow type="math_number">

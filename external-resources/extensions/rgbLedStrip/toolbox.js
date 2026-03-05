@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_RGBLEDSTRIP_CATEGORY}" id="RGBLEDSTRIP_CATEGORY" colour="#7700FF" secondaryColour="#4400B3" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_RGBLEDSTRIP_CATEGORY}" id="RGBLEDSTRIP_CATEGORY" colour="#7700FF" secondaryColour="#4400B3" iconURI="../external-resources/extensions/rgbLedStrip/assets/rgbLedStrip.png">
     <block type="rgbLedStrip_init" id="rgbLedStrip_init">
         <value name="LEN">
             <shadow type="math_whole_number">

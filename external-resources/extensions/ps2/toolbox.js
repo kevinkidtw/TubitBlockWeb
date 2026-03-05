@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_PS2_CATEGORY}" id="PS2_CATEGORY" colour="#FF3399" secondaryColour="#C71585" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_PS2_CATEGORY}" id="PS2_CATEGORY" colour="#FF3399" secondaryColour="#C71585" iconURI="../external-resources/extensions/ps2/assets/ps2.png">
     <block type="ps2_init" id="ps2_init">
         <field name="DIN">2</field>
         <field name="DOUT">3</field>

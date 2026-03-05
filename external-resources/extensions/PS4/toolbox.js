@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-        <category name="%{BKY_PS4_CONTROLLER_CATEGORY}" id="PS4_CONTROLLER_CATEGORY" colour="#2d2de3" secondaryColour="#2d2de3" iconURI="../external-resources/extensions/default_icon.svg">
+        <category name="%{BKY_PS4_CONTROLLER_CATEGORY}" id="PS4_CONTROLLER_CATEGORY" colour="#2d2de3" secondaryColour="#2d2de3" iconURI="../external-resources/extensions/PS4/assets/ps4.png">
             <block type="ps4_controller_init" id="ps4_controller_init" >
                 <value name="MAC">
                     <shadow type="text">

@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_SHARPIR_CATEGORY}" id="SHARPIR_CATEGORY" colour="#9F0050" secondaryColour="#820041" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_SHARPIR_CATEGORY}" id="SHARPIR_CATEGORY" colour="#9F0050" secondaryColour="#820041" iconURI="../external-resources/extensions/ESP32sharpIR/assets/sharpIR.png">
     <block type="sharpIR_inita" id="sharpIR_inita">
         <value name="NO">
             <shadow type="math_whole_number">

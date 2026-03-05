@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_SDCARD_CATEGORY}" id="SDCARD_CATEGORY" colour="#00DD77" secondaryColour="#00AA55" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_SDCARD_CATEGORY}" id="SDCARD_CATEGORY" colour="#00DD77" secondaryColour="#00AA55" iconURI="../external-resources/extensions/sdCard/assets/sdCard.png">
     <block type="sdCard_init" id="sdCard_init">
         <field name="CS">2</field>
     </block>

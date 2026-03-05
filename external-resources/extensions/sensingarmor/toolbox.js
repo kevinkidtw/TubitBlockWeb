@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_SENSORARMOR_CATEGORY}" id="SENSORARMOR_CATEGORY" colour="#0768eb" secondaryColour="#0768eb" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_SENSORARMOR_CATEGORY}" id="SENSORARMOR_CATEGORY" colour="#0768eb" secondaryColour="#0768eb" iconURI="../external-resources/extensions/sensingarmor/assets/sensorarmor.png">
     
     <block type="sensorarmor_init" id="sensorarmor_init"></block>
     <sep gap="36"/>

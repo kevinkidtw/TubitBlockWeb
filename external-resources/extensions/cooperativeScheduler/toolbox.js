@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_COOPERATIVESCHEDULER_CATEGORY}" id="COOPERATIVESCHEDULER_CATEGORY" colour="#A6D200" secondaryColour="#8CB400"  iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_COOPERATIVESCHEDULER_CATEGORY}" id="COOPERATIVESCHEDULER_CATEGORY" colour="#A6D200" secondaryColour="#8CB400"  iconURI="../external-resources/extensions/cooperativeScheduler/assets/cooperativeScheduler.png">
     <block type="cooperativeScheduler_start" id="cooperativeScheduler_start">
     </block>
     <block type="cooperativeScheduler_setup" id="cooperativeScheduler_setup">

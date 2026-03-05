@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_TCS3200_CATEGORY}" id="TCS3200_CATEGORY" colour="#AE00AE" secondaryColour="#930093" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_TCS3200_CATEGORY}" id="TCS3200_CATEGORY" colour="#AE00AE" secondaryColour="#930093" iconURI="../external-resources/extensions/tcs3200/assets/tcs3200.png">
     <block type="tcs3200_init" id="dht_init">
         <field name="S0">2</field>
         <field name="S1">3</field>

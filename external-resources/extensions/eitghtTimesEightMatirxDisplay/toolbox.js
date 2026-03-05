@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_EITGHTTIMESEIGHTMATIRXDISPLAY_CATEGORY}" id="EITGHTTIMESEIGHTMATIRXDISPLAY_CATEGORY" colour="#CE0000" secondaryColour="#AE0000" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_EITGHTTIMESEIGHTMATIRXDISPLAY_CATEGORY}" id="EITGHTTIMESEIGHTMATIRXDISPLAY_CATEGORY" colour="#CE0000" secondaryColour="#AE0000" iconURI="../external-resources/extensions/eitghtTimesEightMatirxDisplay/assets/eitghtTimesEightMatirxDisplay.png">
     <block type="eitghtTimesEightMatirxDisplay_init" id="eitghtTimesEightMatirxDisplay_init">
         <field name="CS">2</field>
     </block>

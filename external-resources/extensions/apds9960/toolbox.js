@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_APDS9960_CATEGORY}" id="APDS9960_CATEGORY" colour="#F08080" secondaryColour="#CD5C5C" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_APDS9960_CATEGORY}" id="APDS9960_CATEGORY" colour="#F08080" secondaryColour="#CD5C5C" iconURI="../external-resources/extensions/apds9960/assets/apds9960.png">
     <block type="apds9960_init" id="apds9960_init">
     </block>
     <block type="apds9960_isGestureAvailable" id="apds9960_isGestureAvailable">

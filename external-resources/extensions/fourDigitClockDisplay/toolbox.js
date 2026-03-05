@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_FOURDIGITCLOCKDISPLAY_CATEGORY}" id="FOURDIGITCLOCKDISPLAY_CATEGORY" colour="#FF7F50" secondaryColour="#FF6347" iconURI="../external-resources/extensions/default_icon.svg">
+<category name="%{BKY_FOURDIGITCLOCKDISPLAY_CATEGORY}" id="FOURDIGITCLOCKDISPLAY_CATEGORY" colour="#FF7F50" secondaryColour="#FF6347" iconURI="../external-resources/extensions/fourDigitClockDisplay/assets/fourDigitClockDisplay.png">
     <block type="fourDigitClockDisplay_init" id="fourDigitClockDisplay_init">
         <field name="DIO">2</field>
         <field name="CLK">3</field>
