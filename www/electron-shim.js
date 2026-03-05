@@ -1323,16 +1323,6 @@
                 }
             }
 
-            // Patch <img> tags (Library Modal)
-            var imgs = node.querySelectorAll('img');
-            for (var i = 0; i < imgs.length; i++) {
-                var img = imgs[i];
-                if (img.dataset.iconPatched) continue;
-                var src = img.getAttribute('src');
-                if (!src || src.indexOf('/extensions/') === -1) continue;
-                _applyTextSvgToElement(img, img, 'src');
-            }
-
             // Patch .scratchCategoryItemIcon divs (Sidebar Palette)
             var divs = node.querySelectorAll('.scratchCategoryItemIcon');
             for (var j = 0; j < divs.length; j++) {
@@ -1344,12 +1334,7 @@
             }
 
             // If the node itself is one of the targets (from mutation observer attribute check)
-            if (node.tagName === 'IMG' && !node.dataset.iconPatched) {
-                var src2 = node.getAttribute('src');
-                if (src2 && src2.indexOf('/extensions/') !== -1) {
-                    _applyTextSvgToElement(node, node, 'src');
-                }
-            } else if (node.classList && node.classList.contains('scratchCategoryItemIcon') && !node.dataset.iconPatched) {
+            if (node.classList && node.classList.contains('scratchCategoryItemIcon') && !node.dataset.iconPatched) {
                 var styleBg2 = node.style.backgroundImage || '';
                 if (styleBg2 && styleBg2.indexOf('/extensions/') !== -1) {
                     _applyTextSvgToElement(node, node, 'backgroundImage');
