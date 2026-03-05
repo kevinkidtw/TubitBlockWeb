@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_DS18B20_CATEGORY}" id="DS18B20_CATEGORY" colour="#009393" secondaryColour="#007979" iconURI="../external-resources/extensions/ds18b20/assets/ds18b20.png">
+<category name="%{BKY_DS18B20_CATEGORY}" id="DS18B20_CATEGORY" colour="#009393" secondaryColour="#007979" iconURI="../external-resources/extensions/default_icon.svg">
     <block type="ds18b20_init" id="ds18b20_init">
         <field name="PIN">2</field>
         <value name="QUANTITY">

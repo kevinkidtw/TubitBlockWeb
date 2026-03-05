@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_MAX30102_CATEGORY}" id="MAX30102_CATEGORY" colour="#5B00AE" secondaryColour="#6F00D2" iconURI="../external-resources/extensions/max30102/assets/max30102.png">
+<category name="%{BKY_MAX30102_CATEGORY}" id="MAX30102_CATEGORY" colour="#5B00AE" secondaryColour="#6F00D2" iconURI="../external-resources/extensions/default_icon.svg">
     <block type="max30102_init" id="max30102_init"></block>
     <block type="max30102_getData" id="max30102_getData"></block>
     <block type="max30102_irValue" id="max30102_irValue"></block>

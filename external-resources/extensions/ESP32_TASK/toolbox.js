@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_TUBITTASK_CATEGORY}" id="TUBITTASK_CATEGORY" colour="#59C059" secondaryColour="#59C059" iconURI="../external-resources/extensions/ESP32_TASK/assets/task.png">
+<category name="%{BKY_TUBITTASK_CATEGORY}" id="TUBITTASK_CATEGORY" colour="#59C059" secondaryColour="#59C059" iconURI="../external-resources/extensions/default_icon.svg">
     
 
     <block type="TUBITTASK_Init" id="TUBITTASK_Init">

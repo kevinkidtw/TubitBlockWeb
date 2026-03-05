@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_TUBITV2HUSKY_CATEGORY}" id="TUBITV2HUSKY_CATEGORY" colour="#DC6B19" secondaryColour="#DC6B19" iconURI="../external-resources/extensions/huskylens/assets/huskylens.png">
+<category name="%{BKY_TUBITV2HUSKY_CATEGORY}" id="TUBITV2HUSKY_CATEGORY" colour="#DC6B19" secondaryColour="#DC6B19" iconURI="../external-resources/extensions/default_icon.svg">
 
     <block type="tubitv2husky_init" id="tubitv2husky_init"></block>
 

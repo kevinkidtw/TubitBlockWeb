@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_TUBITV2_OTC_CATEGORY}" id="TUBITV2_OTC_CATEGORY" colour="#FF6700" secondaryColour="#FF6700" iconURI="../external-resources/extensions/TUBITV2_OTC/assets/otcv2.png">
+<category name="%{BKY_TUBITV2_OTC_CATEGORY}" id="TUBITV2_OTC_CATEGORY" colour="#FF6700" secondaryColour="#FF6700" iconURI="../external-resources/extensions/default_icon.svg">
 
 <block type="tubitv2otc_rundeg" id="tubitv2otc_rundeg">
     

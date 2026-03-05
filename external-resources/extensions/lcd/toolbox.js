@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_LCD_CATEGORY}" id="LCD_CATEGORY" colour="#BBBB00" secondaryColour="#888800" iconURI="../external-resources/extensions/lcd/assets/lcd.png">
+<category name="%{BKY_LCD_CATEGORY}" id="LCD_CATEGORY" colour="#BBBB00" secondaryColour="#888800" iconURI="../external-resources/extensions/default_icon.svg">
     <block type="lcd_init" id="lcd_init">
         <field name="ADDR">0x27</field>
     </block>

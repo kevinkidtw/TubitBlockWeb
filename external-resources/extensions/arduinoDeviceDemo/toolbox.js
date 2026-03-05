@@ -4,7 +4,7 @@
 function registerToolboxs () {
 
     return `
-<category name="%{BKY_ARDUINODEVICEDEMO_CATEGORY}" id="ARDUINODEVICEDEMO_CATEGORY" colour="#42CCFF" secondaryColour="#42CCFF" iconURI="../external-resources/extensions/arduinoDeviceDemo/">
+<category name="%{BKY_ARDUINODEVICEDEMO_CATEGORY}" id="ARDUINODEVICEDEMO_CATEGORY" colour="#42CCFF" secondaryColour="#42CCFF" iconURI="../external-resources/extensions/default_icon.svg">
     <block type="deviceDemo_button"></block>
     <block type="deviceDemo_ultrasonic"></block>
     <block type="deviceDemo_rgb">

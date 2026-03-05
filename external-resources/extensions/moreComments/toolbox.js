@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_MORECOMMENTS_CATEGORY}" id="MORECOMMENTS_CATEGORY" colour="#529955" secondaryColour="#457F48" iconURI="../external-resources/extensions/moreComments/assets/moreComments.png">
+<category name="%{BKY_MORECOMMENTS_CATEGORY}" id="MORECOMMENTS_CATEGORY" colour="#529955" secondaryColour="#457F48" iconURI="../external-resources/extensions/default_icon.svg">
     <block type="moreComments_commandBlock" id="moreComments_commandBlock">
         <value name="COMMENTS">
             <shadow type="text">

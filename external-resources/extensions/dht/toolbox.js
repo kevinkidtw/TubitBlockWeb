@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_DHT_CATEGORY}" id="DHT_CATEGORY" colour="#42CCFF" secondaryColour="#00BFFF" iconURI="../external-resources/extensions/dht/assets/dht.png">
+<category name="%{BKY_DHT_CATEGORY}" id="DHT_CATEGORY" colour="#42CCFF" secondaryColour="#00BFFF" iconURI="../external-resources/extensions/default_icon.svg">
     <block type="dht_init" id="dht_init">
         <value name="NO">
             <shadow type="math_whole_number">

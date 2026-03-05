@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_MPU6050_CATEGORY}" id="MPU6050_CATEGORY" colour="#0066CC" secondaryColour="#005AB5" iconURI="../external-resources/extensions/mpu6050/assets/mpu6050.png">
+<category name="%{BKY_MPU6050_CATEGORY}" id="MPU6050_CATEGORY" colour="#0066CC" secondaryColour="#005AB5" iconURI="../external-resources/extensions/default_icon.svg">
     <block type="mpu6050_init" id="mpu6050_init">
         <field name="AR">MPU6050_RANGE_8_G</field>
         <field name="GR">MPU6050_RANGE_500_DEG</field>

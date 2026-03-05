@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_MAX6675_CATEGORY}" id="MAX6675_CATEGORY" colour="#007979" secondaryColour="#005757" iconURI="../external-resources/extensions/max6675/assets/max6675.png">
+<category name="%{BKY_MAX6675_CATEGORY}" id="MAX6675_CATEGORY" colour="#007979" secondaryColour="#005757" iconURI="../external-resources/extensions/default_icon.svg">
     <block type="max6675_init" id="max6675_init">
         <field name="DO">2</field>
         <field name="CLK">3</field>

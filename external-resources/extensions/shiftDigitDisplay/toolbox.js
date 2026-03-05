@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_SHIFTDIGITDISPLAY_CATEGORY}" id="SHIFTDIGITDISPLAY_CATEGORY" colour="#0072E3" secondaryColour="#005AB5" iconURI="../external-resources/extensions/shiftDigitDisplay/assets/shiftDigitDisplay.png">
+<category name="%{BKY_SHIFTDIGITDISPLAY_CATEGORY}" id="SHIFTDIGITDISPLAY_CATEGORY" colour="#0072E3" secondaryColour="#005AB5" iconURI="../external-resources/extensions/default_icon.svg">
     <block type="shiftDigitDisplay_init" id="shiftDigitDisplay_init">
         <value name="LEN">
             <shadow type="math_whole_number">

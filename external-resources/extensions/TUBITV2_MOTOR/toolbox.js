@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-    <category name="%{BKY_TUBITV2_MOTOR_CATEGORY}" id="TUBITV2_MOTOR_CATEGORY" colour="#FF6700" secondaryColour="#FF6700" iconURI="../external-resources/extensions/TUBITV2_MOTOR/assets/TUBITV2.jpg">
+    <category name="%{BKY_TUBITV2_MOTOR_CATEGORY}" id="TUBITV2_MOTOR_CATEGORY" colour="#FF6700" secondaryColour="#FF6700" iconURI="../external-resources/extensions/default_icon.svg">
 
     <block type="tubitv2motor_run" id="tubitv2motor_run">
         

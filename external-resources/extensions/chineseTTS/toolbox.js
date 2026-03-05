@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_CHINESETTS_CATEGORY}" id="CHINESETTS_CATEGORY" colour="#5A5AAD" secondaryColour="#484891" iconURI="../external-resources/extensions/chineseTTS/assets/chineseTTS.png">
+<category name="%{BKY_CHINESETTS_CATEGORY}" id="CHINESETTS_CATEGORY" colour="#5A5AAD" secondaryColour="#484891" iconURI="../external-resources/extensions/default_icon.svg">
     <block type="chineseTTS_init" id="chineseTTS_init">
         <field name="RX">2</field>
         <field name="TX">3</field>

@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_L298N_CATEGORY}" id="L298N_CATEGORY" colour="#FF6F00" secondaryColour="#FF4F00" iconURI="../external-resources/extensions/l298n/assets/l298n.png">
+<category name="%{BKY_L298N_CATEGORY}" id="L298N_CATEGORY" colour="#FF6F00" secondaryColour="#FF4F00" iconURI="../external-resources/extensions/default_icon.svg">
     <block type="l298n_init" id="l298n_init">
         <value name="CH">
             <shadow type="math_whole_number">

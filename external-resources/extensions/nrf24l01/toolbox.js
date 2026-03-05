@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_NRF24L01_CATEGORY}" id="NRF24L01_CATEGORY" colour="#FF79BC" secondaryColour="#FF359A" iconURI="../external-resources/extensions/nrf24l01/assets/nrf24l01.png">
+<category name="%{BKY_NRF24L01_CATEGORY}" id="NRF24L01_CATEGORY" colour="#FF79BC" secondaryColour="#FF359A" iconURI="../external-resources/extensions/default_icon.svg">
     <block type="nrf24l01_init" id="nrf24l01_init">
         <field name="CE">2</field>
         <field name="CSN">3</field>

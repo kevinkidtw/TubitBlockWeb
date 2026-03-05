@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_U8G2_CATEGORY}" id="U8G2_CATEGORY" colour="#FF7014" secondaryColour="#E1640A" iconURI="../external-resources/extensions/u8g2/assets/u8g2.png">
+<category name="%{BKY_U8G2_CATEGORY}" id="U8G2_CATEGORY" colour="#FF7014" secondaryColour="#E1640A" iconURI="../external-resources/extensions/default_icon.svg">
     <block type="u8g2_12864LCD_init" id="u8g2_12864LCD_init">
         <field name="RS">2</field>
         <field name="R/W">3</field>

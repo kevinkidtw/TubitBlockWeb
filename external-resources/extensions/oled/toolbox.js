@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_OLED_CATEGORY}" id="OLED_CATEGORY" colour="#C0C0C0" secondaryColour="#A9A9A9" iconURI="../external-resources/extensions/oled/assets/oled.png">
+<category name="%{BKY_OLED_CATEGORY}" id="OLED_CATEGORY" colour="#C0C0C0" secondaryColour="#A9A9A9" iconURI="../external-resources/extensions/default_icon.svg">
     <block type="oled_init" id="oled_init">
         <value name="W">
             <shadow type="math_whole_number">

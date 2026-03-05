@@ -3,7 +3,7 @@
 /* eslint-disable require-jsdoc */
 function registerToolboxs () {
     return `
-<category name="%{BKY_INSERTSOURCECODE_CATEGORY}" id="INSERTSOURCECODE_CATEGORY" colour="#5B5B5B" secondaryColour="#3C3C3C" iconURI="../external-resources/extensions/insertSourceCode/assets/insertSourceCode.png">
+<category name="%{BKY_INSERTSOURCECODE_CATEGORY}" id="INSERTSOURCECODE_CATEGORY" colour="#5B5B5B" secondaryColour="#3C3C3C" iconURI="../external-resources/extensions/default_icon.svg">
     <block type="insertSourceCode_commandBlock" id="insertSourceCode_commandBlock">
         <value name="CODE">
             <shadow type="text">
