@@ -120,9 +120,11 @@ TUbitBlock 開放式的架構設計，允許任課教師因應特定專題或校
 
 ---
 
-## 📝 近期重要更新紀錄 (Changelog)
+## 📝 版本更新紀錄 (Changelog)
 
-- **OS-Specific 編譯工具鏈動態抓取 (Dynamic Toolchain Fetching)**：深度重構了啟動腳本 (`start_link.sh`, `.ps1`) 的環境準備邏輯。系統現在具備硬體架構感知能力 (Awareness for macOS ARM64/Intel, Windows x64, Linux x86_64)，並從遠端釋出庫動態獲取所需的 ESP32 編譯元件。解決了以往巨型 Repository 的同步瓶頸與跨平台相容性異常。
-- **儲存庫深度精簡 (Deep Repository Cleanup)**：執行了大規模檔案清理工程，移除高達 3.7GB 的靜態、預編譯 OS 特定二進位檔案及日誌殘留，優化 `.gitignore` 追蹤規則。整體 Git 儲存庫體積下降幅度超過 60%，顯著降低了校園代理伺服器或終端機的同步成本。
-- **核心架構與品牌重構 (TUbitBlock Rebranding)**：完成全專案層級的相依性重構，將歷史遺留的 `openblock` 元件參考與通訊協定重新命名為 `tubitblock`。包含底層目錄結構、環境變數 (`.tubitblockData`) 及 C++ 擴展函式庫的重新鏈結。前端編譯產物部分，導入了基於 `MutationObserver` 模式的 `electron-shim.js` 來動態修補網頁 DOM，確保無干擾替換。
-- **全端本地服務整合與路由修復**：解決了前端對擴充圖資請求發生的 `HTTP 404` 缺失。一鍵啟動腳本現已支援同步掛載 HTTP 靜態資源服務 (TCP/8080) 與 WebSocket 硬體通訊協定 (TCP/20111)。並實作了進階的 URL 攔截器 (URL Interceptor)，透過重載 `window.open` 與全局事件捕獲機制，將所有老舊的技術文件參考指標強制導向至最新的 `trgreat.com/tu-wiki/` 更新維護節點。
+### v0.82 (當前版本)
+
+- **智慧部署腳本**：`start_link` 腳本全面升級，支援 Mac/Win/Linux，具備硬體架構感知能力，並能根據系統動態下載所需 ESP32 編譯元件。解決跨平臺相容性異常。
+- **儲存庫巨幅精簡**：移除高達 3.7GB 冗餘靜態檔案與日誌，Git 儲存庫體積下降逾 60%，提升校安代理伺服器與終端機同步效率。
+- **TUbitBlock 核心重構**：完成歷史 `openblock` 變數與底層通訊協定全面更名（含 `tubitblock-link` 與 `.tubitblockData`），並透過 `electron-shim.js` 動態修補前端 DOM。
+- **本地伺服器整合與路由防護**：一鍵腳本同步掛載 HTTP 靜態服務 (Port 8080) 與 WebSocket (Port 20111)。建置全域 URL 攔截機制，將所有失效的舊版維基連結強制導回 `trgreat.com/tu-wiki/`。
