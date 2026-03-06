@@ -137,11 +137,11 @@ TUbitBlock 開放式的架構設計，允許任課教師因應特定專題或校
 
 ### v0.91 (當前版本)
 
-- **修復 Windows 中文路徑編譯崩潰**：ESP32 Arduino Core v3.1.0+ 引入的 Rust GCC Wrapper 在路徑含非 ASCII 字元（如中文使用者名稱「學生」「教師」）時會觸發 `Error code: 123` 崩潰。透過將 `tubitblock-link` 自動安裝至全 ASCII 路徑 `C:\TubitBlockWeb` 徹底繞過此 Bug。
-- **修復 Windows TEMP 目錄不可用**：覆寫 `arduino-cli` 的 `TMP`/`TEMP` 環境變數至 `C:\Users\Public\TubitTemp`，避免因教師/學生帳號切換導致系統暫存目錄指向無效路徑。
-- **補齊 Windows ctags 工具**：`start_link.ps1` 新增自動下載 `ctags 5.8-arduino11` (Windows 版)，修復原型生成階段因找不到 `ctags.exe` 導致的編譯失敗。
-- **ARM64 Mac 自動安裝 Rosetta 2**：`start_link.sh` 新增 Rosetta 2 偵測與自動安裝邏輯，確保 Apple Silicon Mac 能正常執行 x86_64 版工具（如 `ctags`）。
-- **新增 CH341SER 驅動安裝說明**：README 加入 USB 驅動前置條件表格，明確指引各平台驅動安裝方式。
+- **修復 Windows 中文路徑編譯失敗 (Error 123)**：將 `tubitblock-link` 安裝至全 ASCII 路徑 (`C:\TubitBlockWeb`)，徹底繞過 ESP32 編譯器的中文路徑解析 Bug。
+- **改進環境變數邏輯**：覆寫 `TMP`/`TEMP` 至公用或短路經目錄，確保暫存區可正確讀寫並避開特殊字元。
+- **補齊編譯工具鏈**：新增自動下載 Windows 版 `ctags.exe`，解決原型生成失敗的問題。
+- **支援 Apple Silicon**：Mac 版腳本新增自動偵測並安裝 Rosetta 2，確保 x86_64 架構工具在 ARM64 處理器上順利執行。
+- **新增驅動文件**：於 README 加入 CH341SER USB 驅動詳細安裝指引。
 
 ### v0.85
 
