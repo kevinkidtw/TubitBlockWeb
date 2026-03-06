@@ -114,7 +114,7 @@
                         visible: true,
                         x: 0,
                         y: 0,
-                        size: 100,
+                        size: 15,
                         direction: 90,
                         draggable: false,
                         rotationStyle: 'all around'
@@ -997,8 +997,8 @@
                 // Change to user-provided logo.png
                 var newLogoSrc = './static/assets/logo.png?t=' + Date.now();
                 el.setAttribute('src', newLogoSrc);
-                // The logo class enforces max-height, but let's make sure it scales nicely
-                el.style.height = '100%';
+                // The logo class enforces max-height, let's scale it to 75% as requested by user
+                el.style.height = '75%';
                 el.style.objectFit = 'contain';
                 console.log('[Web] Logo rewritten:', src, '→', newLogoSrc);
                 return;
