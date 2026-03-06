@@ -8,121 +8,93 @@ TUbitBlock 是一個專為各級學校資訊教育設計的進階視覺化積木
 
 1. **雲端/區域網路前端 (TUbitBlock Web)**：
    - 負責所有積木邏輯、視覺化編輯器與流程控制。
-   - 支援將靜態檔案部署於校內伺服器（Nginx/Apache）或免費的 GitHub Pages。跨班級、跨電腦教室上課時，學生僅需具有瀏覽器及對應網址即可進行程式開發，實現真正的零客戶端安裝 (Zero-install Client)。
+   - 支援將靜態檔案部署於校內伺服器或免費的 GitHub Pages。這讓學生僅需透過瀏覽器即可進行開發，實現真正的零客戶端安裝 (Zero-install Client)。
 2. **本機硬體連線代理 (TUbitBlock Link)**：
-   - 解決現代瀏覽器基於 WebUSB / Web Serial 安全限制，無法完整支援複雜驅動與編譯鏈的問題。
-   - 為一支常駐於學生端電腦（或廣播派送映像檔中）的輕量級 Node.js 服務 (`tubitblock-link`)。負責接收前端的 WebSocket 編譯請求、呼叫本機 C++ 工具鏈 (esp-idf / arduino-cli) 進行編譯，並過渡至 USB 序列埠完成燒錄程序的自動化管線。
+   - 為一支常駐於學生端電腦（或廣播派送映像檔中）的輕量級 Node.js 服務 (`tubitblock-link`)。
+   - 負責接收前端的 WebSocket 編譯請求、呼叫本機 C++ 工具鏈進行編譯，並過渡至 USB 序列埠完成燒錄程序。這解決了現代瀏覽器基於 WebUSB 安全限制無法直通編譯的問題。
 
 ---
 
-## 👩‍🎓 學生與一般電腦教室配置 (終端部署流程)
+## 🚀 快速開始：終端安裝與使用流程
 
-為減輕資訊組長或任課教師在電腦教室的環境派送負擔，本專案提供具有「環境偵測與自動修復」能力的整合性啟動腳本。此腳本支援透過網管軟體（如廣播系統的遠端執行功能）進行批次派送與初始化。
+為減輕資訊組長或任課教師在電腦教室的環境派送負擔，本專案提供具備「環境偵測與自動修復」能力的一鍵啟動腳本。以下為標準的上課流程：
 
-### ⚡ 推薦方式：使用一鍵啟動腳本自動部署
+### 第一步：取得並啟動本機連線代理服務 (TUbitBlock Link)
 
-此階段建議於學期初或電腦教室映像檔（Image）製作階段執行：
+該腳本支援透過網管軟體批次派送，它會自動偵測系統環境、安裝 Node.js (若缺乏)，並按需下載跨平臺的 ESP32/Arduino 工具鏈。
 
-1. 請取得本專案專為自動化部署設計的啟動腳本，可透過指令或瀏覽器下載：
-   - **Windows 教室**：[start_link.bat (Raw 連結)](https://raw.githubusercontent.com/kevinkidtw/TubitBlockWeb/main/start_link.bat) (可整合至開機啟動或桌面捷徑)
+1. 請依照作業系統，透過指令或瀏覽器下載專用的啟動腳本：
+   - **Windows 教室**：[start_link.bat (Raw 連結)](https://raw.githubusercontent.com/kevinkidtw/TubitBlockWeb/main/start_link.bat) (建議放置於桌面或加入開機啟動)
    - **Mac/Linux 教室**：[start_link.sh (Raw 連結)](https://raw.githubusercontent.com/kevinkidtw/TubitBlockWeb/main/start_link.sh)
 2. （僅 macOS / Linux 需要）賦予執行權限：`chmod +x start_link.sh`。
-3. 執行腳本以啟動環境初始化流程：
-   - **Windows 環境**：執行 `start_link.bat`。
-   - **Mac/Linux 環境**：執行 `./start_link.sh`。
-4. **初始化與依賴解析階段 (自動執行)**：
-   - **環境檢測**：腳本將檢查系統是否具備 Node.js (npm) 環境。若無，將觸發官方靜態安裝包的下載與靜默安裝。
-   - **編譯鏈按需下載 (On-Demand Fetching)**：腳本會辨識終端機的 OS 與 CPU 架構設定（如 Windows x64 或 Mac ARM64），並從遠端伺服器僅拉取所需的 ESP32 / Arduino 跨平臺工具鏈，避免不必要的頻寬消耗。
-   - **依賴構建**：自動執行 `npm install` 並綁定 WebSocket 通訊埠 (Port 20111)。
-5. *(注意：若環境為首次安裝 Node.js，需重新載入系統環境變數 (`PATH`)，請關閉該終端機視窗並重新執行腳本。)*
-6. 服務成功掛載後，將於背景維持 WebSocket Listen 狀態。此視窗可最小化，為確保硬體通訊正常，上課期間請勿強制終止該進程。
+3. 執行該腳本：
+   - Windows 點兩下執行 `start_link.bat`；Mac/Linux 執行 `./start_link.sh`。
+4. 服務成功掛載後，命令列視窗將於背景維持 WebSocket Listen (`ws://127.0.0.1:20111`) 狀態。此視窗可最小化，為確保硬體通訊正常，上課期間**請勿強制終止該進程**。
+
+> *(注意：若您的環境為**首次**被腳本安裝 Node.js，安裝完成後系統可能需重新載入環境變數 (`PATH`)，此時請關閉該終端機視窗並重新執行一次腳本。)*
+
+### 第二步：開啟網頁版積木編譯器
+
+請學生透過瀏覽器（建議使用 Chrome / Edge）連線至學校統一佈署的前端網址：
+
+- **示範網址**：`https://<校名>.github.io/TubitBlockWeb/www/index.html` 或 `http://<校內伺服器IP>/www/index.html`
+
+### 第三步：(首次使用必做) 安裝硬體 USB 驅動程式
+
+大多數的 ESP32 與 TU:bit 開發板皆使用 **CH340/CH341** USB 轉串口晶片。若電腦未安裝對應驅動，將無法透過 USB 連線燒錄程式：
+
+- **Windows 環境**：請點擊網頁右上角的「**齒輪（設定）**」圖示，選擇「**安裝驅動**」，系統將一鍵下載官方 `CH341SER.EXE`。執行安裝後請重新啟動電腦。
+- **macOS 12+ / Linux**：系統核心已內建驅動，**無需額外安裝**。
+- **macOS 11 以下**：請手動下載 [macOS 版驅動](https://www.wch-ic.com/downloads/CH341SER_MAC_ZIP.html)並安裝。
+
+> ⚠️ **提醒給資訊老師**：強烈建議於學期初，統一在 Windows 電腦教室的母碟映像檔 (Image) 中預先安裝好 CH341 驅動，以免學生上課時才發現無法連線。
+
+### 第四步：連線實體設備並開始編程
+
+1. 使用傳輸線將開發板連接至電腦的 USB 埠。
+2. 在網頁左下角點擊「**增加設備**」並選擇您的開發板。
+3. 前端會透過 WebSocket 與您剛才啟動的 `TUbitBlock Link` 服務握手，畫面右上角若顯示連線成功，即可開始拖曳積木進行教學與燒錄！
 
 ---
 
-## 🗃 替代方式：手動下載原始碼部署（供進階除錯參考）
+## 👨‍🏫 資訊教師與伺服器管理員進階指南
 
-若校安網路環境 (例如防火牆/Proxy) 阻擋了腳本的自動封包下載，資訊人員可採取離線/手動配置模式：
+如果您是學校的系統管理員，規劃為全校建置統一的存取入口或加入自訂感測器：
 
-1. **基礎環境建置**：自行部署 Node.js (建議採用 LTS 長期維護版本) 至所有終端機。
-2. **原始碼獲取**：由本 GitHub 儲存庫下載 `.zip` 壓縮包，並解壓至統一的終端路徑（例如 `C:\TUbitBlock\` 或透過網碟掛載）。
-3. **服務啟動**：
-   開啟命令提示字元 (CMD/Terminal)，切換至 `tubitblock-link` 目錄，執行：
+### 方案 A：將網頁介面免費部署至 GitHub Pages (推薦)
 
-   ```bash
-   npm install
-   npm start
-   ```
+這項方案能大幅節省校內伺服器的建置與維護成本，並具備優異的 CDN 連線速度。
 
-### 第三步：開啟網頁寫程式
-
-1. 請學生透過瀏覽器連線至學校統一佈署的前端網址（例如：`http://校內伺服器IP:8080/www/index.html` `https://校名.github.io/TubitBlockWeb/www/index.html`）。
-2. **(首次使用必做) 安裝 USB 驅動程式 (CH341SER)**：
-   大多數開發板晶片需配對驅動才能透過 USB 燒錄，依作業系統區分如下：
-   - **Windows**：點擊網頁右上角的「齒輪（設定）」圖示，並選擇「安裝驅動」，系統將一鍵下載官方 `CH341SER.EXE`。執行安裝後請重新啟動電腦。
-   - **macOS 12+ / Linux**：系統核心已內建驅動，**無需額外安裝**。
-   - **macOS 11 以下**：需手動下載 [macOS 版驅動](https://www.wch-ic.com/downloads/CH341SER_MAC_ZIP.html)並安裝。
-   > ⚠️ **提醒**：建議資訊教師於學期初統一在 Windows 電腦教室映像檔中預先安裝好驅動，避免學生上課時才發現無法連線。
-3. 在網頁左下角點擊「增加設備」，前端會透過 WebSocket (`ws://127.0.0.1:20111`) 與本機的 Link 服務握手，即可偵測到連接於 USB 的開發板並開始教學。
-
----
-
-## 👨‍🏫 資訊教師與伺服器管理員指南
-
-如果您是學校的資訊組長或系統管理員，規劃為全校建置統一的存取入口或加入自製感測器模組：
-
-### 🚀 選項一：將網頁介面免費部署至 GitHub Pages
-
-這項方案能大幅節省校內伺服器的建置與維護成本，並具備高防護力與 CDN 負載平衡優勢。
-
-1. 以學校科室或個人帳號將本專案 **Fork**。
-2. 確認專案根目錄下存在 `.nojekyll` 隱藏檔（此設定可防止 GitHub Pages 的 Jekyll 解析器忽略底層的 `_` 系統資料夾，避免編譯器資源載入失敗）。
+1. 以學校科室或個人帳號將本 GitHub 專案 **Fork**。
+2. 確認專案根目錄下存在 `.nojekyll` 隱藏檔（此設定可防止 GitHub Pages 忽略底層的系統資料夾）。
 3. 進入 GitHub 專案的 **Settings** -> 左側選單 **Pages**。
-4. 於 **Build and deployment** 設定區：
-   - Source: `Deploy from a branch`
-   - Branch: `main`，路徑選擇 `/ (root)`，儲存設定。
-5. 部署完成後，將生成的靜態網址（如 `https://<帳號>.github.io/<專案>/www/index.html`）掛載於學校數位學習平台即可供學生使用。
+4. 於 **Build and deployment** 設定區將 Source 設為 `Deploy from a branch`；Branch 選擇 `main` 與 `/ (root)` 後儲存。
+5. 部署完成後，將生成的靜態網址掛載於校網或數位學習平台即可供全校使用。
 
-### 🐧 選項二：自行架設伺服器 (Linux 伺服器建置示範)
+### 方案 B：自行架設區域網路伺服器
 
-對於需要受控於學術網路內、或無對外網路連線的電腦教室，建議採取內部伺服器托管方案：
+對於需受控於純學術網路內、或無對外網路的電腦教室：
 
-1. **環境整備** (以 Ubuntu/Debian 為例)：
+1. 於伺服器 (如 Ubuntu) 安裝必備套件：`sudo apt-get install python3 git -y`
+2. 拉取專案至伺服器 `/var/www`：`git clone https://github.com/kevinkidtw/TubitBlockWeb.git`
+3. 啟動 Web 伺服器 (示範使用 Python, 企業級建議配 Nginx)：`nohup python3 -m http.server 8080 -d ./TubitBlockWeb > server.log 2>&1 &`
+4. 網址即為 `http://<內部伺服器IP>:8080/www/index.html`。
 
-   ```bash
-   sudo apt-get update
-   sudo apt-get install python3 git -y
-   ```
+### 方案 C：離線手動配置 Link 服務 (取代一鍵腳本)
 
-2. **拉取專案至伺服器 `/var/www` 或使用者目錄**：
+若校安網路防火牆阻擋了一鍵腳本的包下載，可採取離線配置：
 
-   ```bash
-   git clone https://github.com/kevinkidtw/TubitBlockWeb.git
-   cd TubitBlockWeb
-   ```
+1. 自行部署 Node.js (LTS 版本) 至所有終端機。
+2. 下載本專案 `.zip` 壓縮包並解壓至統一終端路徑（如 `C:\TUbitBlock\`）。
+3. 開啟終端機切換至 `tubitblock-link` 目錄，手動執行 `npm install` 接著執行 `npm start`。
 
-3. **啟動 Web 伺服器** (示範使用 Python 輕量 http.server，企業級建議配置 Nginx/Apache 指向此目錄)：
+### 🛠 如何新增客製化硬體設備與感測器？
 
-   ```bash
-   nohup python3 -m http.server 8080 -d ./ > server.log 2>&1 &
-   ```
+TUbitBlock 允許任課教師因應特定專題，無縫擴充第三方感測器支援：
 
-4. 學生端只需連線至 `http://<內部伺服器IP>:8080/www/index.html` 即可載入開發環境。（註：終端機仍需執行 `TUbitBlock Link` 服務以處理實體 I/O 與編譯）。
-
-### 🛠 教學資源擴充：如何新增硬體設備與感測器？
-
-TUbitBlock 開放式的架構設計，允許任課教師因應特定專題或校訂課程，無縫繼承並擴充第三方感測器支援：
-
-1. **註冊設備定義 (`zh-tw.json`)**：
-   - 位置：`external-resources/devices/zh-tw.json`。
-   - 此檔案管理前端設備庫的註冊表，新增的感測器套件必須依循 JSON 綱要 (Schema) 定義設備名稱與描述。
-2. **擴充積木介面與轉換邏輯 (`toolbox.js` 與 `blocks.js`)**：
-   - 於 `external-resources/extensions/` 建立套件專屬目錄。
-   - `toolbox.js`：定義分類抽屜（需確保 `<category>` 包含 `iconURI` 避免渲染失敗）。
-   - `blocks.js`：建構視覺積木的型態與 I/O 接口 (Type & Connection)。
-   - `generator.js`：實作該積木對應的 AST 至 C/C++ 語法轉換邏輯。
-3. **整合 Arduino C/C++ 標頭檔與依賴 (關鍵環節)**：
-   - 若客製化積木使用了第三方硬體函式庫（例如 `#include <Adafruit_Sensor.h>`），必須將該 Library 的實體原始碼包裹。
-   - 請將函式庫資料夾放入 `tubitblock-link/tools/Arduino/libraries/` 目錄中。如此，後端的 Arduino Toolchain 才能在學生點擊「燒錄」時，正確解析標頭檔並完成 Linking 程序。
+1. **註冊設備定義**：於 `external-resources/devices/zh-tw.json` 中配置設備名稱與描述。
+2. **擴充積木介面**：於 `external-resources/extensions/` 建立套件專屬目錄，撰寫 `toolbox.js` (分類抽屜)、`blocks.js` (積木型態) 以及 `generator.js` (C/C++ 轉換邏輯)。
+3. **整合 Arduino Library (關鍵)**：若使用了第三方硬體函式庫（例如 Adafruit），必須將該 Library 資料夾放入 `tubitblock-link/tools/Arduino/libraries/` 目錄中，後端編譯器才能正確解析標頭檔。
 
 ---
 
