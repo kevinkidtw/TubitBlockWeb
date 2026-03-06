@@ -138,6 +138,12 @@ echo "======================================================="
 if [ "$OS_NAME" == "Darwin" ]; then
     if [ "$ARCH" == "arm64" ]; then
         PLATFORM_LABEL="macOS ARM64 (Apple Silicon)"
+        # 確保 Rosetta 2 已安裝（部分 x86_64 工具如 ctags 需要）
+        if ! /usr/bin/pgrep -q oahd 2>/dev/null; then
+            echo "  [!] 偵測到尚未安裝 Rosetta 2，正在自動安裝..."
+            softwareupdate --install-rosetta --agree-to-license 2>/dev/null || true
+            echo "  [✓] Rosetta 2 安裝完成"
+        fi
         ESP_X32_URL="https://github.com/espressif/crosstool-NG/releases/download/esp-13.2.0_20240530/xtensa-esp-elf-13.2.0_20240530-aarch64-apple-darwin.tar.gz"
         ESP_RV32_URL="https://github.com/espressif/crosstool-NG/releases/download/esp-13.2.0_20240530/riscv32-esp-elf-13.2.0_20240530-aarch64-apple-darwin.tar.gz"
         ESPTOOL_URL="https://github.com/espressif/arduino-esp32/releases/download/3.1.0-RC3/esptool-v4.9.dev3-macos-arm64.tar.gz"
