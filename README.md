@@ -24,7 +24,7 @@ TUbitBlock 是一個專為各級學校資訊教育設計的進階視覺化積木
 大多數 ESP32 / TU:bit 開發板使用 **CH340/CH341** USB 轉串口晶片。若電腦未安裝對應驅動，將無法透過 USB 連線燒錄程式。
 
 | 平台 | 說明 |
-|------|------|
+| --- | --- |
 | **Windows** | 必須手動安裝。請至 [WCH 官方網站](https://www.wch-ic.com/downloads/CH341SER_EXE.html) 下載 `CH341SER.EXE`，執行安裝後重新啟動電腦。 |
 | **macOS 12+** | 系統已內建 CH34x 驅動，**無需額外安裝**。 |
 | **macOS 11 以下** | 請至 [WCH 官方網站](https://www.wch-ic.com/downloads/CH341SER_MAC_ZIP.html) 下載 macOS 版驅動並安裝。 |
