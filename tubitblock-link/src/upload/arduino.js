@@ -44,10 +44,21 @@ class Arduino {
         this._buildCachePath = path.join(this._projectFilePath, 'buildCache');
 
         // Create a local isolated temp folder for arduino-cli to bypass Windows invalid %TEMP% issues
-        this._arduinoTempPath = path.join(this._userDataPath, 'arduino', 'tmp');
-        if (!fs.existsSync(this._arduinoTempPath)) {
-            fs.mkdirSync(this._arduinoTempPath, { recursive: true });
+        let tempPath = path.join(this._userDataPath, 'arduino', 'tmp');
+        if (!fs.existsSync(tempPath)) {
+            fs.mkdirSync(tempPath, { recursive: true });
         }
+
+        // Convert to Windows 8.3 short path to eliminate Chinese/Unicode characters
+        // This prevents the Espressif Rust compiler wrappers from crashing with Error 123
+        if (os.platform() === 'win32') {
+            const cp = spawnSync('cmd.exe', ['/c', `for %I in ("${tempPath}") do @echo %~sI`]);
+            if (cp.stdout) {
+                const short = cp.stdout.toString().trim();
+                if (short) tempPath = short;
+            }
+        }
+        this._arduinoTempPath = tempPath;
 
         // Prepare custom environment variables for spawn/spawnSync
         this._spawnEnv = Object.assign({}, process.env, {
