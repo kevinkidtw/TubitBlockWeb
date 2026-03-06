@@ -43,19 +43,61 @@ class Arduino {
         this._buildPath = path.join(this._projectFilePath, 'build');
         this._buildCachePath = path.join(this._projectFilePath, 'buildCache');
 
-        // Create a local isolated temp folder for arduino-cli to bypass Windows invalid %TEMP% issues
-        let tempPath = path.join(this._userDataPath, 'arduino', 'tmp');
-        if (!fs.existsSync(tempPath)) {
-            fs.mkdirSync(tempPath, { recursive: true });
-        }
+        // ---- Windows ESP32 Error 123 Workaround ----
+        // ESP32 Arduino Core v3.1.0+ ships a Rust-based GCC wrapper that calls
+        // GetShortPathNameW on ALL command-line arguments. This API panics when
+        // the output file doesn't exist yet AND the path contains non-ASCII chars
+        // (e.g. Chinese usernames like "學生"). To avoid this, we must ensure the
+        // TEMP directory path is 100% ASCII.
+        //
+        // Strategy (3-tier fallback):
+        //   1. C:\Users\Public\TubitTemp  (guaranteed ASCII, writable by all users)
+        //   2. 8.3 short-path conversion of the project-local tmp folder
+        //   3. Project-local tmp folder as-is (last resort)
+        let tempPath = null;
 
-        // Convert to Windows 8.3 short path to eliminate Chinese/Unicode characters
-        // This prevents the Espressif Rust compiler wrappers from crashing with Error 123
         if (os.platform() === 'win32') {
-            const cp = spawnSync('cmd.exe', ['/c', `for %I in ("${tempPath}") do @echo %~sI`]);
-            if (cp.stdout) {
-                const short = cp.stdout.toString().trim();
-                if (short) tempPath = short;
+            // Tier 1: Use C:\Users\Public\TubitTemp (always all-ASCII on any Windows)
+            const publicTemp = 'C:\\Users\\Public\\TubitTemp';
+            try {
+                if (!fs.existsSync(publicTemp)) {
+                    fs.mkdirSync(publicTemp, { recursive: true });
+                }
+                // Verify we can actually write to it
+                const testFile = path.join(publicTemp, '.write_test');
+                fs.writeFileSync(testFile, 'ok');
+                fs.unlinkSync(testFile);
+                tempPath = publicTemp;
+            } catch (_e) {
+                // Public folder not writable, try Tier 2
+            }
+
+            // Tier 2: Convert project-local tmp path to 8.3 short path
+            if (!tempPath) {
+                const localTmp = path.join(this._userDataPath, 'arduino', 'tmp');
+                if (!fs.existsSync(localTmp)) {
+                    fs.mkdirSync(localTmp, { recursive: true });
+                }
+                try {
+                    const cp = spawnSync('cmd.exe',
+                        ['/c', `for %I in ("${localTmp}") do @echo %~sI`]);
+                    if (cp.stdout) {
+                        const short = cp.stdout.toString().trim();
+                        // Only use if it's actually different (i.e. 8.3 names are enabled)
+                        if (short && short !== localTmp && !/[^\x00-\x7F]/.test(short)) {
+                            tempPath = short;
+                        }
+                    }
+                } catch (_e) { /* ignore */ }
+
+                // Tier 3: Use the local tmp path as-is
+                if (!tempPath) tempPath = localTmp;
+            }
+        } else {
+            // macOS / Linux: just use a project-local tmp folder
+            tempPath = path.join(this._userDataPath, 'arduino', 'tmp');
+            if (!fs.existsSync(tempPath)) {
+                fs.mkdirSync(tempPath, { recursive: true });
             }
         }
         this._arduinoTempPath = tempPath;
