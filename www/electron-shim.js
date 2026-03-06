@@ -54,6 +54,12 @@
         },
         send: function (channel) {
             console.log('[Web] ipcRenderer.send:', channel);
+            if (channel === 'installDriver') {
+                console.log('[Web] Intercepted installDriver IPC call. Redirecting to WCH...');
+                // The monkey-patched window.open will NOT be called if we just use normal location.href or a new original window.open
+                // Use location.href instead of window.open to bypass popup blockers for file downloads!
+                window.location.href = 'https://www.wch-ic.com/download/file?id=65';
+            }
         },
         sendSync: function (channel) {
             console.log('[Web] ipcRenderer.sendSync:', channel);
@@ -1231,7 +1237,7 @@
         var TUTORIAL_URL = 'https://trgreat.com/tubit-%e5%9f%ba%e7%a4%8e%e5%85%a5%e9%96%80%e8%aa%b2%e7%a8%8b/';
 
         // ---- 要隱藏的選單項目 (依文字內容比對) ----
-        var HIDDEN_ITEMS = ['關於', '許可證', '隱私政策', '數據政策', 'About', 'License', 'Privacy Policy'];
+        var HIDDEN_ITEMS = ['關於', '許可證', '許可証', '许可证', '隱私政策', '隐私政策', '數據政策', '數據設置', '数据设置', 'About', 'License', 'Privacy Policy', 'Data settings'];
 
         function patchText(text) {
             var result = text;
@@ -1385,7 +1391,7 @@
             }
 
             // 搜尋所有可點擊子元素 
-            var candidates = root.querySelectorAll ? root.querySelectorAll('li, div[class*="menu"], a, button, span[role="menuitem"]') : [];
+            var candidates = root.querySelectorAll ? root.querySelectorAll('li, div[class*="menu"], a, button, span[role="menuitem"], li[class*="menu_menu-item_"]') : [];
             for (var i = 0; i < candidates.length; i++) {
                 processHide(candidates[i]);
             }
