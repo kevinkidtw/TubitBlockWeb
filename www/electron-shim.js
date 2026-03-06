@@ -1218,6 +1218,37 @@
             }
         })();
 
+        // ---- Monkey-patch 攔截存檔副檔名 (將 .ob / .sb3 改為 .tb) ----
+        (function () {
+            // 攔截 a.download = 'xxx.ob'
+            var anchorDesc = Object.getOwnPropertyDescriptor(HTMLAnchorElement.prototype, 'download');
+            if (anchorDesc && anchorDesc.set) {
+                var origAnchorSet = anchorDesc.set;
+                Object.defineProperty(HTMLAnchorElement.prototype, 'download', {
+                    get: anchorDesc.get,
+                    set: function (val) {
+                        if (typeof val === 'string') {
+                            val = val.replace(/\.(ob|sb3)$/i, '.tb');
+                            val = patchText(val);
+                        }
+                        return origAnchorSet.call(this, val);
+                    },
+                    configurable: true,
+                    enumerable: true
+                });
+            }
+
+            // 攔截 a.setAttribute('download', 'xxx.ob')
+            var _origSetAttribute = Element.prototype.setAttribute;
+            Element.prototype.setAttribute = function (name, value) {
+                if (name === 'download' && typeof value === 'string') {
+                    value = value.replace(/\.(ob|sb3)$/i, '.tb');
+                    value = patchText(value);
+                }
+                return _origSetAttribute.call(this, name, value);
+            };
+        })();
+
         function patchTextNodes(root) {
             var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
             var node;
