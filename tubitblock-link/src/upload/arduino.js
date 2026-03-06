@@ -43,15 +43,28 @@ class Arduino {
         this._buildPath = path.join(this._projectFilePath, 'build');
         this._buildCachePath = path.join(this._projectFilePath, 'buildCache');
 
+        // Create a local isolated temp folder for arduino-cli to bypass Windows invalid %TEMP% issues
+        this._arduinoTempPath = path.join(this._userDataPath, 'arduino', 'tmp');
+        if (!fs.existsSync(this._arduinoTempPath)) {
+            fs.mkdirSync(this._arduinoTempPath, { recursive: true });
+        }
+
+        // Prepare custom environment variables for spawn/spawnSync
+        this._spawnEnv = Object.assign({}, process.env, {
+            TMP: this._arduinoTempPath,
+            TEMP: this._arduinoTempPath,
+            TMPDIR: this._arduinoTempPath
+        });
+
         this.initArduinoCli();
     }
 
     initArduinoCli() {
         // try to init the arduino cli config.
-        spawnSync(this._arduinoCliPath, ['config', 'init', '--dest-file', this._configFilePath]);
+        spawnSync(this._arduinoCliPath, ['config', 'init', '--dest-file', this._configFilePath], { env: this._spawnEnv });
 
         // if arduino cli config haven be init, set it to link arduino path.
-        const buf = spawnSync(this._arduinoCliPath, ['config', 'dump', '--config-file', this._configFilePath]);
+        const buf = spawnSync(this._arduinoCliPath, ['config', 'dump', '--config-file', this._configFilePath], { env: this._spawnEnv });
         try {
             if (buf.error) {
                 throw buf.error;
@@ -63,11 +76,11 @@ class Arduino {
                 this._sendstd(`${ansi.yellow_dark}arduino cli config has not been initialized yet.\n`);
                 this._sendstd(`${ansi.green_dark}set the path to ${this._arduinoPath}.\n`);
                 spawnSync(this._arduinoCliPath, ['config', 'set', 'directories.data', this._arduinoPath,
-                    '--config-file', this._configFilePath]);
+                    '--config-file', this._configFilePath], { env: this._spawnEnv });
                 spawnSync(this._arduinoCliPath, ['config', 'set', 'directories.downloads',
-                    path.join(this._arduinoPath, 'staging'), '--config-file', this._configFilePath]);
+                    path.join(this._arduinoPath, 'staging'), '--config-file', this._configFilePath], { env: this._spawnEnv });
                 spawnSync(this._arduinoCliPath, ['config', 'set', 'directories.user', this._arduinoPath,
-                    '--config-file', this._configFilePath]);
+                    '--config-file', this._configFilePath], { env: this._spawnEnv });
             }
         } catch (err) {
             this._sendstd(`${ansi.red}arduino cli init error:${err.toString()}\n`);
@@ -110,7 +123,7 @@ class Arduino {
                 }
             });
 
-            const arduinoCli = spawn(this._arduinoCliPath, args);
+            const arduinoCli = spawn(this._arduinoCliPath, args, { env: this._spawnEnv });
             this._sendstd(`Start building...\n`);
 
             arduinoCli.stderr.on('data', buf => {
@@ -192,7 +205,7 @@ class Arduino {
         }
 
         return new Promise((resolve, reject) => {
-            const arduinoCli = spawn(this._arduinoCliPath, args);
+            const arduinoCli = spawn(this._arduinoCliPath, args, { env: this._spawnEnv });
 
             arduinoCli.stderr.on('data', buf => {
                 let data = buf.toString();
