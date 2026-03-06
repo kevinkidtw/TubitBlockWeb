@@ -963,6 +963,20 @@
 
         function rewriteSrc(el) {
             var src = el.getAttribute('src');
+
+            // --- Intercept OpenBlock Logo ---
+            if (src && (src.includes('82bfb019b31f069af40d1a18b7cbfb24.svg') || src.includes('575072545bff0feef2b50c8ca78ccf19.svg'))) {
+                // Change to user-provided logo.png
+                var newLogoSrc = './static/assets/logo.png?t=' + Date.now();
+                el.setAttribute('src', newLogoSrc);
+                // The logo class enforces max-height, but let's make sure it scales nicely
+                el.style.height = '100%';
+                el.style.objectFit = 'contain';
+                console.log('[Web] Logo rewritten:', src, '→', newLogoSrc);
+                return;
+            }
+
+            // --- Normal Resource Server Rewrite ---
             var newSrc = rewriteUrl(src);
             if (newSrc) {
                 el.setAttribute('src', newSrc);
