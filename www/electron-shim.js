@@ -1323,6 +1323,18 @@
             var links = root.querySelectorAll ? root.querySelectorAll('a[href]') : [];
             for (var i = 0; i < links.length; i++) {
                 var href = links[i].getAttribute('href');
+                var text = (links[i].textContent || '').trim().toLowerCase();
+
+                // 安裝驅動大按鈕直接下載官方 exe
+                if (text.indexOf('安裝驅動') >= 0 || text.indexOf('install driver') >= 0 || text.indexOf('安装驱动') >= 0 || text.indexOf('安裝 usb 驅動') >= 0) {
+                    var driverUrl = 'https://www.wch-ic.com/download/file?id=65';
+                    if (href !== driverUrl) {
+                        links[i].setAttribute('href', driverUrl);
+                        console.log('[Web] Driver link redirect:', text, '→', driverUrl);
+                    }
+                    continue;
+                }
+
                 // 維基連結重導向
                 if (href && LINK_REDIRECTS[href]) {
                     links[i].setAttribute('href', LINK_REDIRECTS[href]);
