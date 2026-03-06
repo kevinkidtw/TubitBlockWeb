@@ -1231,7 +1231,7 @@
         var TUTORIAL_URL = 'https://trgreat.com/tubit-%e5%9f%ba%e7%a4%8e%e5%85%a5%e9%96%80%e8%aa%b2%e7%a8%8b/';
 
         // ---- 要隱藏的選單項目 (依文字內容比對) ----
-        var HIDDEN_ITEMS = ['關於', '許可證', '數據政策', 'About', 'License', 'Privacy Policy'];
+        var HIDDEN_ITEMS = ['關於', '許可證', '隱私政策', '數據政策', 'About', 'License', 'Privacy Policy'];
 
         function patchText(text) {
             var result = text;
@@ -1240,6 +1240,25 @@
             }
             return result;
         }
+
+        // ---- Monkey-patch window.open (攔截安裝驅動等原生開啟行為) ----
+        (function () {
+            var _origWindowOpen = window.open;
+            window.open = function (url, target, features) {
+                if (typeof url === 'string') {
+                    var lowerUrl = url.toLowerCase();
+                    // 攔截安裝驅動 (如果 URL 中包含 driver 或 ch34 或 hardware)
+                    if (lowerUrl.indexOf('driver') >= 0 || lowerUrl.indexOf('ch34') >= 0 || lowerUrl.indexOf('hardware') >= 0) {
+                        url = 'https://www.wch-ic.com/download/file?id=65';
+                        console.log('[Web] Intercepted window.open for Driver:', url);
+                    } else if (lowerUrl.indexOf('wiki.openblock.cc') >= 0 || lowerUrl.indexOf('openblock.cc') >= 0) {
+                        url = 'https://trgreat.com/tu-wiki/';
+                        console.log('[Web] Intercepted window.open for Wiki:', url);
+                    }
+                }
+                return _origWindowOpen.call(window, url, target, features);
+            };
+        })();
 
         // ---- Monkey-patch input.value setter 攔截 React 受控輸入 ----
         (function () {
@@ -1350,10 +1369,7 @@
 
         // 隱藏不需要的選單項目
         function hideUnwantedItems(root) {
-            // 搜尋所有可點擊元素 (li, div, a, button, span)
-            var candidates = root.querySelectorAll ? root.querySelectorAll('li, div[class*="menu"], a, button, span[role="menuitem"]') : [];
-            for (var i = 0; i < candidates.length; i++) {
-                var el = candidates[i];
+            function processHide(el) {
                 var text = (el.textContent || '').trim();
                 for (var j = 0; j < HIDDEN_ITEMS.length; j++) {
                     if (text === HIDDEN_ITEMS[j]) {
@@ -1361,6 +1377,17 @@
                         console.log('[Web] Hidden menu item:', text);
                     }
                 }
+            }
+
+            // 檢查根節點本身
+            if (root.nodeType === Node.ELEMENT_NODE && (root.tagName === 'LI' || root.tagName === 'A' || root.tagName === 'BUTTON' || root.tagName === 'DIV' || root.tagName === 'SPAN')) {
+                processHide(root);
+            }
+
+            // 搜尋所有可點擊子元素 
+            var candidates = root.querySelectorAll ? root.querySelectorAll('li, div[class*="menu"], a, button, span[role="menuitem"]') : [];
+            for (var i = 0; i < candidates.length; i++) {
+                processHide(candidates[i]);
             }
         }
 
