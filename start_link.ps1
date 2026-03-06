@@ -190,14 +190,22 @@ else {
 # ---- 第三步：尋找或下載 Link 服務（僅下載編譯服務，不含網頁前端）----
 # 說明：網頁前端 (www/) 和擴展包 (external-resources/) 由 GitHub Pages 提供，
 #       本地端只需要 Link 服務 (openblock-link/) 進行編譯和燒錄。
+#
+# ESP32 Arduino Core v3.1.0+ 的 Rust GCC Wrapper 在路徑含有非 ASCII 字元
+# （如中文使用者名稱「學生」）時會崩潰 (Error 123)。
+# 因此我們將 Link 服務安裝至固定的全 ASCII 路徑 C:\TubitBlockWeb，
+# 以確保編譯過程中所有路徑皆不含中文字元。
 Write-Host "[3/5] 正在檢查 Link 硬體連線服務..." -ForegroundColor Yellow
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$safeRoot = "C:\TubitBlockWeb"   # 全 ASCII 路徑，避免 ESP32 編譯器路徑 Bug
 $linkDir = $null
 
-# 搜尋可能的 link 目錄位置（支援新舊目錄名）
+# 搜尋可能的 link 目錄位置（優先搜尋全 ASCII 路徑）
 $linkDirNames = @("openblock-link", "tubitblock-link")
 $searchRoots = @(
+    $safeRoot,
+    (Join-Path $safeRoot "TubitBlockWeb"),
     $scriptDir,
     (Join-Path $scriptDir "TubitBlockWeb"),
     (Join-Path $scriptDir "TubitBlockWeb-main")
@@ -217,13 +225,19 @@ foreach ($root in $searchRoots) {
 if (-not $linkDir) {
     Write-Host "  找不到 Link 服務，正在從 GitHub 下載（僅下載編譯服務）..." -ForegroundColor Red
     Write-Host "  (不會下載網頁前端和擴展包，節省大量下載時間)" -ForegroundColor DarkGray
+    Write-Host "  安裝位置: $safeRoot (全 ASCII 路徑，確保 ESP32 編譯成功)" -ForegroundColor DarkGray
     Write-Host ""
+
+    # 確保安全根目錄存在
+    if (-not (Test-Path $safeRoot)) {
+        New-Item -ItemType Directory -Path $safeRoot -Force | Out-Null
+    }
 
     $gitPath = Get-Command git -ErrorAction SilentlyContinue
     if ($gitPath) {
         # 使用 Git sparse-checkout 僅下載 openblock-link/ 目錄
         Write-Host "  使用 Git 稀疏檢出 (sparse-checkout)，僅下載 Link 服務..." -ForegroundColor Cyan
-        Set-Location $scriptDir
+        Set-Location $safeRoot
 
         & git config --global core.longpaths true
 
@@ -232,7 +246,7 @@ if (-not $linkDir) {
 
         # 初始化空 repo，設定 sparse-checkout，然後 pull
         & cmd /c "git clone --filter=blob:none --no-checkout --depth 1 --progress https://github.com/kevinkidtw/TubitBlockWeb.git 2>&1"
-        Set-Location (Join-Path $scriptDir "TubitBlockWeb")
+        Set-Location (Join-Path $safeRoot "TubitBlockWeb")
         & git sparse-checkout init --cone
         & git sparse-checkout set openblock-link tubitblock-link
         & cmd /c "git checkout 2>&1"
@@ -244,24 +258,24 @@ if (-not $linkDir) {
     else {
         # 無 Git 時，下載整個 ZIP 再只保留 link 目錄
         Write-Host "  Git 不可用，改用壓縮包下載..." -ForegroundColor Yellow
-        $zipPath = Join-Path $scriptDir "TubitBlockWeb.zip"
+        $zipPath = Join-Path $safeRoot "TubitBlockWeb.zip"
 
         Download-FileWithProgress -Url "https://github.com/kevinkidtw/TubitBlockWeb/archive/refs/heads/main.zip" -OutFile $zipPath -DisplayName "TubitBlockWeb 專案壓縮包"
 
         Write-Host ""
         Write-Host "  正在解壓縮檔案 (使用 tar)..." -ForegroundColor Yellow
-        & tar.exe -xf $zipPath -C $scriptDir
+        & tar.exe -xf $zipPath -C $safeRoot
         Remove-Item $zipPath -ErrorAction SilentlyContinue
 
-        $extractedDir = Join-Path $scriptDir "TubitBlockWeb-main"
-        $targetDir = Join-Path $scriptDir "TubitBlockWeb"
+        $extractedDir = Join-Path $safeRoot "TubitBlockWeb-main"
+        $targetDir = Join-Path $safeRoot "TubitBlockWeb"
         if (Test-Path $extractedDir) {
             Rename-Item $extractedDir $targetDir -ErrorAction SilentlyContinue
         }
     }
 
     # 尋找下載後的 link 目錄
-    $downloadedRoot = Join-Path $scriptDir "TubitBlockWeb"
+    $downloadedRoot = Join-Path $safeRoot "TubitBlockWeb"
     foreach ($dirName in $linkDirNames) {
         $testLink = Join-Path $downloadedRoot $dirName
         if (Test-Path (Join-Path $testLink "package.json")) {
@@ -418,7 +432,8 @@ if (-not (Test-Path $arduinoCliBin)) {
     Remove-Item $cliZip -Force -ErrorAction SilentlyContinue
     Remove-Item $cliTemp -Recurse -Force -ErrorAction SilentlyContinue
     Write-Host "  [OK] arduino-cli.exe 安裝完成" -ForegroundColor Green
-} else {
+}
+else {
     Write-Host "  [OK] arduino-cli.exe 已存在，跳過下載" -ForegroundColor Green
 }
 
