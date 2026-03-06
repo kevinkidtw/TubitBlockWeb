@@ -1,4 +1,4 @@
-﻿﻿# =====================================================================
+﻿# =====================================================================
 # TubitBlockWeb 一鍵自動部署與啟動腳本 (Windows PowerShell)
 # 功能：自動安裝 Node.js/Git、偵測 CPU 架構、下載對應的 ESP32 編譯器、
 #       啟動 HTTP 靜態伺服器與 openblock-link 連線服務。
@@ -249,8 +249,8 @@ if (-not $linkDir) {
         Download-FileWithProgress -Url "https://github.com/kevinkidtw/TubitBlockWeb/archive/refs/heads/main.zip" -OutFile $zipPath -DisplayName "TubitBlockWeb 專案壓縮包"
 
         Write-Host ""
-        Write-Host "  正在解壓縮檔案..." -ForegroundColor Yellow
-        Expand-Archive -Path $zipPath -DestinationPath $scriptDir -Force
+        Write-Host "  正在解壓縮檔案 (使用 tar)..." -ForegroundColor Yellow
+        & tar.exe -xf $zipPath -C $scriptDir
         Remove-Item $zipPath -ErrorAction SilentlyContinue
 
         $extractedDir = Join-Path $scriptDir "TubitBlockWeb-main"
@@ -361,7 +361,7 @@ function Download-EspTool {
 
     # 解壓到臨時目錄
     New-Item -ItemType Directory -Path $extractTemp -Force | Out-Null
-    Expand-Archive -Path $zipFile -DestinationPath $extractTemp -Force
+    & tar.exe -xf $zipFile -C $extractTemp
 
     # 建立目標目錄
     New-Item -ItemType Directory -Path $fullDest -Force | Out-Null
@@ -407,7 +407,7 @@ if (-not (Test-Path $arduinoCliBin)) {
         -DisplayName "arduino-cli"
     
     New-Item -ItemType Directory -Path $cliTemp -Force | Out-Null
-    Expand-Archive -Path $cliZip -DestinationPath $cliTemp -Force
+    & tar.exe -xf $cliZip -C $cliTemp
     
     # 移動 arduino-cli.exe 到 Arduino 目錄
     $cliExe = Get-ChildItem -Path $cliTemp -Filter "arduino-cli.exe" -Recurse | Select-Object -First 1
