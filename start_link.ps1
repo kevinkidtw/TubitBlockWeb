@@ -24,7 +24,7 @@ Write-Host "=======================================================" -Foreground
 Write-Host ""
 
 # ---- 統一下載函數（穩定版，不依賴 BITS / WebClient 非同步）----
-function Download-FileWithProgress {
+function Receive-FileWithProgress {
     param(
         [string]$Url,
         [string]$OutFile,
@@ -132,7 +132,7 @@ if (-not $npmPath) {
     else {
         Write-Host "  正在從 Node.js 官方網站下載安裝檔..."
         $msiPath = Join-Path $env:TEMP "nodejs_setup.msi"
-        Download-FileWithProgress -Url "https://nodejs.org/dist/v20.11.1/node-v20.11.1-x64.msi" -OutFile $msiPath -DisplayName "Node.js LTS"
+        Receive-FileWithProgress -Url "https://nodejs.org/dist/v20.11.1/node-v20.11.1-x64.msi" -OutFile $msiPath -DisplayName "Node.js LTS"
         Write-Host "  正在執行安裝程式，請在彈出的視窗中完成安裝..."
         Start-Process msiexec.exe -ArgumentList "/i `"$msiPath`" /qb" -Wait
         Remove-Item $msiPath -ErrorAction SilentlyContinue
@@ -165,7 +165,7 @@ if (-not $gitPath) {
     else {
         Write-Host "  正在從 Git 官方網站下載安裝檔..." -ForegroundColor Cyan
         $gitInstaller = Join-Path $env:TEMP "Git-Setup.exe"
-        Download-FileWithProgress -Url "https://github.com/git-for-windows/git/releases/download/v2.47.1.windows.2/Git-2.47.1.2-64-bit.exe" -OutFile $gitInstaller -DisplayName "Git for Windows"
+        Receive-FileWithProgress -Url "https://github.com/git-for-windows/git/releases/download/v2.47.1.windows.2/Git-2.47.1.2-64-bit.exe" -OutFile $gitInstaller -DisplayName "Git for Windows"
         Write-Host "  正在執行 Git 安裝程式（靜默安裝）..."
         Start-Process -FilePath $gitInstaller -ArgumentList "/VERYSILENT /NORESTART /NOCANCEL /SP-" -Wait
         Remove-Item $gitInstaller -ErrorAction SilentlyContinue
@@ -260,7 +260,7 @@ if (-not $linkDir) {
         Write-Host "  Git 不可用，改用壓縮包下載..." -ForegroundColor Yellow
         $zipPath = Join-Path $safeRoot "TubitBlockWeb.zip"
 
-        Download-FileWithProgress -Url "https://github.com/kevinkidtw/TubitBlockWeb/archive/refs/heads/main.zip" -OutFile $zipPath -DisplayName "TubitBlockWeb 專案壓縮包"
+        Receive-FileWithProgress -Url "https://github.com/kevinkidtw/TubitBlockWeb/archive/refs/heads/main.zip" -OutFile $zipPath -DisplayName "TubitBlockWeb 專案壓縮包"
 
         Write-Host ""
         Write-Host "  正在解壓縮檔案 (使用 tar)..." -ForegroundColor Yellow
@@ -349,7 +349,7 @@ $toolList = @(
     }
 )
 
-function Download-EspTool {
+function Receive-EspTool {
     param(
         [string]$Name,
         [string]$Url,
@@ -369,7 +369,7 @@ function Download-EspTool {
     $zipFile = Join-Path $env:TEMP "esp32_tool_$(Get-Random).zip"
     $extractTemp = Join-Path $env:TEMP "esp32_extract_$(Get-Random)"
 
-    Download-FileWithProgress -Url $Url -OutFile $zipFile -DisplayName $Name
+    Receive-FileWithProgress -Url $Url -OutFile $zipFile -DisplayName $Name
 
     Write-Host "    正在解壓..." -ForegroundColor DarkGray
 
@@ -402,7 +402,7 @@ $toolIndex = 0
 foreach ($tool in $toolList) {
     $toolIndex++
     Write-Host "  ($toolIndex/6)" -NoNewline
-    Download-EspTool -Name $tool.Name -Url $tool.Url -DestDir $tool.DestDir
+    Receive-EspTool -Name $tool.Name -Url $tool.Url -DestDir $tool.DestDir
 }
 
 # ---- 下載 arduino-cli.exe ----
@@ -415,7 +415,7 @@ if (-not (Test-Path $arduinoCliBin)) {
     $cliZip = Join-Path $env:TEMP "arduino-cli_$(Get-Random).zip"
     $cliTemp = Join-Path $env:TEMP "arduino-cli_extract_$(Get-Random)"
     
-    Download-FileWithProgress `
+    Receive-FileWithProgress `
         -Url "https://github.com/arduino/arduino-cli/releases/download/v0.35.3/arduino-cli_0.35.3_Windows_64bit.zip" `
         -OutFile $cliZip `
         -DisplayName "arduino-cli"
@@ -447,7 +447,7 @@ if (-not (Test-Path $ctagsBin)) {
     $ctagsZip = Join-Path $env:TEMP "ctags_$(Get-Random).zip"
     $ctagsTemp = Join-Path $env:TEMP "ctags_extract_$(Get-Random)"
 
-    Download-FileWithProgress `
+    Receive-FileWithProgress `
         -Url "https://github.com/arduino/ctags/releases/download/5.8-arduino11/ctags-5.8-arduino11-i686-mingw32.zip" `
         -OutFile $ctagsZip `
         -DisplayName "ctags"
