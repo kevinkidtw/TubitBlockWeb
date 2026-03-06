@@ -437,6 +437,39 @@ else {
     Write-Host "  [OK] arduino-cli.exe 已存在，跳過下載" -ForegroundColor Green
 }
 
+# ---- 下載 ctags (arduino-cli 生成函式原型所需) ----
+$ctagsDir = Join-Path $linkDir "tools\Arduino\packages\builtin\tools\ctags\5.8-arduino11"
+$ctagsBin = Join-Path $ctagsDir "ctags.exe"
+
+if (-not (Test-Path $ctagsBin)) {
+    Write-Host ""
+    Write-Host "  [DL] 正在下載 ctags 5.8-arduino11 (Windows)..." -ForegroundColor Cyan
+    $ctagsZip = Join-Path $env:TEMP "ctags_$(Get-Random).zip"
+    $ctagsTemp = Join-Path $env:TEMP "ctags_extract_$(Get-Random)"
+
+    Download-FileWithProgress `
+        -Url "https://github.com/arduino/ctags/releases/download/5.8-arduino11/ctags-5.8-arduino11-i686-mingw32.zip" `
+        -OutFile $ctagsZip `
+        -DisplayName "ctags"
+
+    New-Item -ItemType Directory -Path $ctagsTemp -Force | Out-Null
+    & tar.exe -xf $ctagsZip -C $ctagsTemp
+
+    # 建立目標目錄並移動 ctags.exe
+    New-Item -ItemType Directory -Path $ctagsDir -Force | Out-Null
+    $ctagsExe = Get-ChildItem -Path $ctagsTemp -Filter "ctags.exe" -Recurse | Select-Object -First 1
+    if ($ctagsExe) {
+        Move-Item -Path $ctagsExe.FullName -Destination $ctagsBin -Force
+    }
+
+    Remove-Item $ctagsZip -Force -ErrorAction SilentlyContinue
+    Remove-Item $ctagsTemp -Recurse -Force -ErrorAction SilentlyContinue
+    Write-Host "  [OK] ctags 安裝完成" -ForegroundColor Green
+}
+else {
+    Write-Host "  [OK] ctags 已存在，跳過下載" -ForegroundColor Green
+}
+
 Write-Host ""
 Write-Host "  ESP32 編譯器工具鏈就緒!" -ForegroundColor Green
 
