@@ -114,7 +114,7 @@
                         visible: true,
                         x: 0,
                         y: 0,
-                        size: 50,
+                        size: 100,
                         direction: 90,
                         draggable: false,
                         rotationStyle: 'all around'
